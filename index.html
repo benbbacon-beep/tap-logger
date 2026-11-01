@@ -591,6 +591,7 @@ const want = expectedLabel(S.offset);
 if (S.offset === 0 && S.data && S.data.label !== want) { S.data = null; S.open = {}; S.d = {}; S.tab = defaultTab(); }
 load(true);
 });
+window.addEventListener('hashchange', () => { takeSetupFromLink(); S.cfg = readCfg(); if (S.cfg) { S.data = null; load(); } });
 // ---------------------------------------------------------------- start
 takeSetupFromLink();
 S.cfg = readCfg();
