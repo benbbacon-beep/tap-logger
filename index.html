@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E0F12">
+<meta name="color-scheme" content="dark">
+<title>Tap Logger</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+--bg: #0E0F12; --card: #17191E; --line: #2A2D35; --raise: #23262D; --sel: #2A2D35;
+--text: #F2F3F5; --muted: #9AA0AA; --faint: #5B616B; --accent: #00E0FF; --accent-ink: #0E0F12; --tick-bg: #083344;
+--bad: #F87171;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; font-size: 16px; }
+body { padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 40px); max-width: 520px; margin: 0 auto; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.top { display: flex; align-items: center; justify-content: space-between; }
+.round { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; padding: 0; }
+.round svg { width: 18px; height: 18px; }
+.date { text-align: center; }
+.date small { display: block; font-size: 13px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.date strong { font-size: 22px; font-weight: 700; }
+.progress { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.progress .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.progress .row b { color: var(--text); font-weight: 600; }
+.bar { height: 8px; border-radius: 4px; background: var(--raise); overflow: hidden; }
+.bar i { display: block; height: 8px; border-radius: 4px; background: var(--accent); transition: width .3s; }
+.tabs { margin: 16px 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px; position: sticky; top: calc(env(safe-area-inset-top) + 6px); z-index: 5; box-shadow: 0 8px 16px var(--bg); }
+.tabs button { height: 48px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 500; font-size: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.tabs button span { font-size: 11px; }
+.tabs button.on { background: var(--sel); color: var(--text); font-weight: 600; }
+.tabs button.on span, .tabs button span.done { color: var(--accent); }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.card h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.card .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.big { font-size: 28px; font-weight: 700; color: var(--accent); }
+.big.empty { color: var(--faint); }
+.logged { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 12px; }
+.tick { width: 36px; height: 36px; flex: none; border-radius: 18px; background: var(--tick-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+.tick svg { width: 18px; height: 18px; }
+.logged .txt { flex-grow: 1; min-width: 0; }
+.logged .txt b { display: block; font-size: 15px; font-weight: 600; }
+.logged .txt span { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ghost { height: 44px; padding: 0 14px; border: 0; background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.tile .lab { font-size: 13px; color: var(--muted); }
+.tile .val { font-size: 28px; font-weight: 700; }
+.tile .val small { font-size: 14px; color: var(--muted); font-weight: 500; }
+.tile .ok { font-size: 12px; color: var(--accent); }
+.tile button.val { background: none; border: 0; padding: 0; text-align: left; color: var(--text); }
+label.f { display: flex; flex-direction: column; gap: 6px; }
+label.f > span { font-size: 13px; color: var(--muted); }
+textarea, input.in { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 12px; font-size: 16px; }
+textarea { min-height: 76px; resize: vertical; }
+input.in { height: 48px; }
+input.num { font-size: 20px; font-weight: 600; }
+input[type=time].in { font-size: 20px; font-weight: 600; color-scheme: dark; }
+textarea::placeholder, input::placeholder { color: var(--faint); }
+.cta { height: 52px; border: 0; border-radius: 14px; background: var(--accent); color: var(--accent-ink); font-size: 16px; font-weight: 700; width: 100%; }
+.cta.alt { background: var(--raise); color: var(--text); border: 1px solid var(--line); font-weight: 600; }
+.cta.sm { height: 48px; width: auto; padding: 0 18px; flex: none; }
+.inline { display: flex; gap: 8px; align-items: flex-end; }
+.inline > label { flex-grow: 1; }
+.slider { display: flex; flex-direction: column; gap: 8px; }
+.slider .ctl { display: flex; align-items: center; gap: 10px; }
+.nudge { width: 44px; height: 44px; flex: none; border-radius: 22px; border: 1px solid var(--line); background: var(--raise); font-size: 22px; line-height: 1; padding: 0; }
+.slider .ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 0 54px; }
+input[type=range] { -webkit-appearance: none; appearance: none; flex-grow: 1; height: 44px; background: transparent; margin: 0; }
+input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--accent) 0 var(--fill-a, 0%), var(--raise) var(--fill-a, 0%) 100%); }
+input[type=range].mid::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--raise) 0 var(--lo, 50%), var(--accent) var(--lo, 50%) var(--hi, 50%), var(--raise) var(--hi, 50%) 100%); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 15px; background: var(--text); margin-top: -11px; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+input[type=range].untouched::-webkit-slider-thumb { background: var(--faint); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--raise); font-size: 14px; font-weight: 500; }
+.chips button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+details { border: 1px solid var(--line); border-radius: 14px; background: var(--bg); padding: 0 14px; }
+details[open] { padding-bottom: 14px; }
+summary { list-style: none; min-height: 48px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 15px; cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+summary svg { width: 18px; height: 18px; transition: transform .2s; }
+details[open] summary svg { transform: rotate(180deg); }
+summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-left: auto; margin-right: 8px; }
+.in-details { display: flex; flex-direction: column; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.grid3 input.in { text-align: center; font-size: 18px; font-weight: 600; padding: 0 4px; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: var(--card); border-radius: 10px; padding: 3px; }
+.seg button { height: 40px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; }
+.seg button.on { background: var(--sel); color: var(--text); font-weight: 600; }
+.lab12 { font-size: 12px; color: var(--muted); }
+.checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.checks button { height: 52px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 12px; padding: 0 12px; text-align: left; }
+.box { width: 26px; height: 26px; flex: none; border-radius: 8px; border: 2px solid #3A3F49; display: flex; align-items: center; justify-content: center; }
+.checks button.on .box { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.box svg { width: 16px; height: 16px; display: none; }
+.checks button.on .box svg { display: block; }
+.saved { font-size: 13px; color: var(--muted); white-space: pre-line; background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+.note { font-size: 13px; color: var(--muted); padding: 0 4px; }
+.foot { margin-top: 28px; text-align: center; font-size: 12px; color: var(--faint); }
+.foot button { background: none; border: 0; color: var(--muted); text-decoration: underline; font-size: 12px; padding: 8px; }
+#toast { position: fixed; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 16px); max-width: 488px; margin: 0 auto; padding: 14px 16px; border-radius: 14px; font-weight: 600; text-align: center; transform: translateY(140%); transition: transform .25s; z-index: 30; }
+#toast.show { transform: none; }
+#toast.ok { background: var(--accent); color: var(--accent-ink); }
+#toast.err { background: #7F1D1D; color: #FEE2E2; }
+#sheet { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
+#sheet.show { display: flex; }
+#sheet .panel { background: var(--card); width: 100%; max-width: 520px; border-radius: 22px 22px 0 0; padding: 12px 16px calc(env(safe-area-inset-bottom) + 20px); max-height: 85vh; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+.grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); align-self: center; }
+.conf { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.conf b { font-size: 15px; }
+.conf .now { color: #FCA5A5; font-size: 14px; white-space: pre-wrap; }
+.conf .new { color: var(--accent); font-size: 14px; white-space: pre-wrap; }
+.setup { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
+.setup h1 { margin: 0; font-size: 28px; }
+.setup p { margin: 0; color: var(--muted); line-height: 1.5; }
+.loading { color: var(--muted); text-align: center; padding: 40px 0; }
+.stale { opacity: .65; transition: opacity .2s; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="panel" id="sheet-panel"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+// ---------------------------------------------------------------- setup
+const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache';
+const ICON = {
+left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
+right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+tick: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>',
+chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'
+};
+function readCfg() { try { return JSON.parse(localStorage.getItem(LS_CFG) || 'null'); } catch (e) { return null; } }
+function takeSetupFromLink() {
+const m = location.hash.match(/setup=([A-Za-z0-9_-]+)/);
+if (!m) return;
+try {
+const json = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'));
+const c = JSON.parse(json);
+if (c.url && c.key) localStorage.setItem(LS_CFG, JSON.stringify({ url: c.url, key: c.key }));
+} catch (e) {}
+history.replaceState(null, '', location.pathname + location.search);
+}
+// ---------------------------------------------------------------- state
+const S = {
+cfg: null, offset: 0, data: null, loading: false, stale: false,
+tab: null, open: {}, busy: {}, d: {}  // d = drafts the user has typed but not saved
+};
+const TABS = ['Morning', 'Day', 'Evening', 'More'];
+const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3'], ['creatine', 'Creatine 3g']];
+const TEXT_KEYS = ['sleepNotes', 'amNotes', 'pmNotes', 'bowel', 'exNotes', 'moodNotes', 'hunger', 'extraKet', 'glucose', 'exercise'];
+const ITEMS = [
+{ id: 'sleep', tab: 'Morning', done: v => !!v.sleepQ },
+{ id: 'weight', tab: 'Morning', done: v => !!v.weight },
+{ id: 'ketones', tab: 'Morning', done: v => !!v.ketonesAM },
+{ id: 'amMood', tab: 'Morning', done: v => !!v.amMood },
+{ id: 'bowel', tab: 'Day', done: v => !!v.bowel },
+{ id: 'firstBite', tab: 'Day', done: v => !!v.firstBite },
+{ id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
+{ id: 'exercise', tab: 'Day', done: v => !!v.exercise },
+{ id: 'moodNotes', tab: 'Day', done: v => !!v.moodNotes },
+{ id: 'lastBite', tab: 'Evening', done: v => !!v.lastBite },
+{ id: 'pmMood', tab: 'Evening', done: v => !!v.pmMood }
+];
+function defaultTab() {
+const h = new Date().getHours();
+if (h < 3) return 'Evening';   // still yesterday's log until 3am
+if (h < 12) return 'Morning';
+if (h < 18) return 'Day';
+return 'Evening';
+}
+function expectedLabel(offset) {
+const now = new Date();
+const d = new Date(now.getTime() + ((now.getHours() < 3 ? -1 : 0) + offset) * 864e5);
+const p = {};
+new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).formatToParts(d).forEach(x => p[x.type] = x.value);
+return p.weekday + ' ' + p.day + ' ' + p.month;
+}
+// ---------------------------------------------------------------- helpers
+const $ = (sel, el = document) => el.querySelector(sel);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const nowHHMM = () => { const d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const signed = n => (n > 0 ? '+' : '') + n;
+const V = () => (S.data && S.data.values) || {};
+const draft = (k, dflt) => (k in S.d ? S.d[k] : dflt);
+let toastTimer;
+function toast(msg, ok) {
+const t = $('#toast');
+t.textContent = msg; t.className = (ok ? 'ok' : 'err') + ' show';
+clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = t.className.replace(' show', ''), ok ? 1800 : 4500);
+if (ok && navigator.vibrate) navigator.vibrate(12);
+}
+async function api(action, extra) {
+const res = await fetch(S.cfg.url, { method: 'POST', body: JSON.stringify(Object.assign({ key: S.cfg.key, action, dayOffset: S.offset }, extra || {})) });
+const j = await res.json();
+if (j.error) throw new Error(j.error);
+return j;
+}
+// ---------------------------------------------------------------- loading
+function cacheKey() { return LS_CACHE + ':' + expectedLabel(S.offset); }
+async function load(quiet) {
+S.loading = true;
+if (!S.data) {
+try { const c = JSON.parse(localStorage.getItem(cacheKey()) || 'null'); if (c) { S.data = c; S.stale = true; } } catch (e) {}
+} else S.stale = true;
+render();
+try {
+const data = await api('state');
+S.data = data; S.stale = false;
+try { localStorage.setItem(cacheKey(), JSON.stringify(data)); } catch (e) {}
+} catch (e) {
+if (!quiet) toast(navigator.onLine ? e.message : 'No connection. Showing the last saved copy.', false);
+}
+S.loading = false;
+render();
+}
+// ---------------------------------------------------------------- saving
+async function send(cardId, items) {
+if (S.busy[cardId]) return;
+S.busy[cardId] = true; render();
+try {
+const r = await api('save', { items });
+if (r.ok) { done(cardId, items); }
+else openConflicts(cardId, items, r.conflicts);
+} catch (e) {
+toast(navigator.onLine ? e.message : 'No connection. Nothing saved.', false);
+}
+S.busy[cardId] = false; render();
+}
+function done(cardId, items) {
+items.forEach(it => { delete S.d[it.key]; });
+(CLEAR[cardId] || []).forEach(k => delete S.d[k]);
+S.open[cardId] = false;
+toast('Saved', true);
+load(true);
+}
+const CLEAR = {
+sleep: ['sleepQ', 'sleepNotes'], amMood: ['amMood', 'amNotes'], pmMood: ['pmMood', 'pmNotes'],
+exercise: ['exSel', 'g_focus', 'g_energy', 'g_strength', 'g_dur', 'g_durNote', 'g_int', 'g_intNote', 'exNotes'],
+supps: ['supSel', 'lcarn', 'mag']
+};
+function openConflicts(cardId, items, conflicts) {
+const choice = {};
+const panel = $('#sheet-panel');
+panel.innerHTML = '<div class="grab"></div><h2 id="sheet-title" style="margin:0;font-size:20px">Already filled in</h2>' +
+'<div class="note" style="padding:0">Nothing has been saved yet. Choose what to do with each one.</div>' +
+conflicts.map((c, i) => {
+choice[c.key] = 'keep';
+const canAdd = TEXT_KEYS.indexOf(c.key) >= 0;
+return '<div class="conf"><b>' + esc(c.header) + '</b><div class="now">Now: ' + esc(c.current) + '</div><div class="new">New: ' + esc(c.value) + '</div>' +
+'<div class="seg" data-k="' + esc(c.key) + '" style="grid-template-columns:repeat(' + (canAdd ? 3 : 2) + ',minmax(0,1fr))">' +
+'<button class="on" data-v="keep">Keep</button><button data-v="replace">Replace</button>' + (canAdd ? '<button data-v="append">Add to end</button>' : '') + '</div></div>';
+}).join('') +
+'<button class="cta" id="conf-go">Save my choices</button><button class="cta alt" id="conf-x">Cancel</button>';
+panel.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
+const b = e.target.closest('button'); if (!b) return;
+seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+choice[seg.dataset.k] = b.dataset.v;
+}));
+$('#conf-x').onclick = closeSheet;
+$('#conf-go').onclick = () => {
+const next = [];
+items.forEach(it => {
+const ch = choice[it.key];
+if (ch === undefined) next.push(it);
+else if (ch !== 'keep') next.push(Object.assign({}, it, { mode: ch }));
+});
+closeSheet();
+if (next.length) send(cardId, next); else { toast('Nothing changed', true); }
+};
+$('#sheet').classList.add('show');
+}
+function closeSheet() { $('#sheet').classList.remove('show'); }
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+// ---------------------------------------------------------------- render
+function render() {
+const app = $('#app');
+if (!S.cfg) { app.innerHTML = setupView(); bindSetup(); return; }
+const active = document.activeElement && document.activeElement.id;
+const caret = active && document.activeElement.selectionStart;
+app.innerHTML = headerView() + (S.data ? tabsView() + '<div class="stack' + (S.stale ? ' stale' : '') + '">' + tabView(S.tab) + '</div>' : '<div class="loading">Loading…</div>') + footView();
+bind();
+if (active) { const el = document.getElementById(active); if (el) { el.focus(); try { if (caret != null) el.setSelectionRange(caret, caret); } catch (e) {} } }
+}
+function setupView() {
+return '<div class="setup"><h1>Tap Logger</h1><p>Open the setup link Claude gave you on this phone, or paste the two values below.</p>' +
+'<label class="f"><span>App address</span><input class="in" id="su-url" placeholder="https://script.google.com/macros/s/…/exec"></label>' +
+'<label class="f"><span>Key</span><input class="in" id="su-key" autocomplete="off"></label>' +
+'<button class="cta" id="su-go">Connect</button></div>';
+}
+function bindSetup() {
+$('#su-go').onclick = () => {
+const url = $('#su-url').value.trim(), key = $('#su-key').value.trim();
+if (!/^https:\/\/script\.google\.com\//.test(url) || !key) return toast('Check both values', false);
+localStorage.setItem(LS_CFG, JSON.stringify({ url, key })); S.cfg = { url, key }; load();
+};
+}
+function headerView() {
+const lab = S.data ? S.data.label : expectedLabel(S.offset);
+const rel = S.offset === 0 ? 'Today' : S.offset === -1 ? 'Yesterday' : (-S.offset) + ' days ago';
+const vals = V();
+const counted = ITEMS.filter(i => i.done(vals)).length;
+return '<div class="top"><button class="round" id="prev" aria-label="Previous day"' + (S.offset <= -6 ? ' disabled' : '') + '>' + ICON.left + '</button>' +
+'<div class="date"><small>' + rel + (S.loading ? ' · updating' : '') + '</small><strong>' + esc(lab) + '</strong></div>' +
+'<button class="round" id="next" aria-label="Next day"' + (S.offset >= 0 ? ' disabled' : '') + '>' + ICON.right + '</button></div>' +
+(S.data ? '<div class="progress"><div class="row"><span>Logged ' + (S.offset === 0 ? 'today' : 'that day') + '</span><b>' + counted + ' of ' + ITEMS.length + '</b></div><div class="bar"><i style="width:' + Math.round(counted / ITEMS.length * 100) + '%"></i></div></div>' : '');
+}
+function tabsView() {
+const vals = V();
+return '<nav class="tabs" aria-label="Part of the day">' + TABS.map(t => {
+const its = ITEMS.filter(i => i.tab === t);
+const n = its.filter(i => i.done(vals)).length;
+const sub = t === 'More' ? 'Extras' : n === its.length ? 'Done' : n + ' / ' + its.length;
+return '<button data-tab="' + t + '" class="' + (S.tab === t ? 'on' : '') + '" aria-pressed="' + (S.tab === t) + '">' + t + '<span class="' + (sub === 'Done' ? 'done' : '') + '">' + sub + '</span></button>';
+}).join('') + '</nav>';
+}
+function footView() {
+return '<div class="foot">Tap Logger · writes to your Daily Log<br><button id="reset">Disconnect this phone</button></div>';
+}
+// ----- building blocks
+function loggedRow(id, title, summary) {
+return '<div class="logged"><div class="tick">' + ICON.tick + '</div><div class="txt"><b>' + esc(title) + '</b><span>' + esc(summary) + '</span></div>' +
+'<button class="ghost" data-edit="' + id + '">Edit</button></div>';
+}
+function isOpen(id, isDone) { return !isDone || S.open[id]; }
+function saveBtn(id, label, alt) {
+return '<button class="cta' + (alt ? ' alt' : '') + '" data-save="' + id + '"' + (S.busy[id] ? ' disabled' : '') + '>' + (S.busy[id] ? 'Saving…' : label) + '</button>' +
+(S.open[id] ? '<button class="ghost" data-close="' + id + '" style="align-self:center">Cancel</button>' : '');
+}
+function textArea(key, label, ph, rows) {
+return '<label class="f"><span>' + label + '</span><textarea id="t_' + key + '" data-d="' + key + '" placeholder="' + esc(ph || '') + '"' + (rows ? ' style="min-height:' + rows + 'px"' : '') + '>' + esc(draft(key, '')) + '</textarea></label>';
+}
+function sliderBlock(key, min, max, current) {
+const touched = key in S.d;
+const val = touched ? Number(S.d[key]) : (current !== '' && current != null && !isNaN(Number(current)) ? Number(current) : (min < 0 ? 0 : (min + max) / 2));
+const pct = v => ((v - min) / (max - min) * 100) + '%';
+const mid = min < 0;
+const style = mid ? '--lo:' + pct(Math.min(0, val)) + ';--hi:' + pct(Math.max(0, val)) : '--fill-a:' + pct(val);
+return '<div class="slider"><div class="ctl"><button class="nudge" data-nudge="' + key + '" data-step="-0.5" data-min="' + min + '" data-max="' + max + '" aria-label="Down half a point">−</button>' +
+'<input type="range" id="r_' + key + '" data-range="' + key + '" min="' + min + '" max="' + max + '" step="0.5" value="' + val + '" class="' + (mid ? 'mid ' : '') + (touched ? '' : 'untouched') + '" style="' + style + '" aria-label="Score">' +
+'<button class="nudge" data-nudge="' + key + '" data-step="0.5" data-min="' + min + '" data-max="' + max + '" aria-label="Up half a point">+</button></div>' +
+'<div class="ends"><span>' + (mid ? '−5' : '0') + '</span>' + (mid ? '<span>0</span>' : '') + '<span>' + (mid ? '+5' : '10') + '</span></div></div>';
+}
+function scoreDisplay(key, current, isMood) {
+const touched = key in S.d;
+if (!touched) return '<div class="big empty">' + (current ? esc(current) : '—') + '</div>';
+const v = Number(S.d[key]);
+return '<div class="big">' + (isMood ? signed(v) : v) + '</div>';
+}
+// ----- tabs
+function tabView(t) {
+const v = V();
+if (t === 'Morning') return sleepCard(v) + weightKetCards(v) + moodCard('amMood', 'amNotes', 'Morning mood', 'How’s the morning feeling?', v);
+if (t === 'Day') return bowelCard(v) + timeCard('firstBite', 'First bite', v) + suppCard(v) + exerciseCard(v) + moodNotesCard(v);
+if (t === 'Evening') return timeCard('lastBite', 'Last bite', v) + moodCard('pmMood', 'pmNotes', 'Evening mood', 'How’s the evening feeling?', v);
+return moreCard('hunger', 'Hunger', 'How hungry you were today', 'e.g. mild hunger before lunch, none after', 'new', v) +
+moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
+moreCard('glucose', 'Glucose', 'Reading and time (mmol/L)', 'e.g. 5.1 at 17:05', 'append', v) +
+'<div class="note">Optional extras. They don’t count towards “logged today”. Readings you add go on a new line under any already saved.</div>';
+}
+function sleepCard(v) {
+const isDone = !!v.sleepQ;
+if (!isOpen('sleep', isDone)) return loggedRow('sleep', 'Sleep', v.sleepQ + ' / 10' + (v.sleepNotes ? ' · note saved' : ''));
+return '<div class="card"><div class="head"><h2>Sleep quality</h2>' + scoreDisplay('sleepQ', v.sleepQ) + '</div>' +
+sliderBlock('sleepQ', 0, 10, v.sleepQ) + textArea('sleepNotes', 'Sleep notes', 'How was the night?') + saveBtn('sleep', 'Save sleep') + '</div>';
+}
+function weightKetCards(v) {
+const tile = (key, id, lab, unit, ph) => {
+if (v[key] && !S.open[id]) return '<div class="tile"><div class="lab">' + lab + '</div><button class="val" data-edit="' + id + '" aria-label="Edit ' + lab + '">' + esc(v[key]) + '<small> ' + unit + '</small></button><div class="ok">Logged · tap to edit</div></div>';
+return '<div class="tile"><label class="f"><span>' + lab + ' (' + unit + ')</span><input class="in num" id="i_' + key + '" data-d="' + key + '" inputmode="decimal" placeholder="' + ph + '" value="' + esc(draft(key, '')) + '"></label>' +
+'<button class="cta" style="height:44px" data-save="' + id + '"' + (S.busy[id] ? ' disabled' : '') + '>' + (S.busy[id] ? 'Saving…' : 'Save') + '</button></div>';
+};
+return '<div class="pair">' + tile('weight', 'weight', 'Weight', 'kg', '76.0') + tile('ketonesAM', 'ketones', 'Ketones', 'mmol/L', '1.5') + '</div>';
+}
+function moodCard(scoreKey, noteKey, title, ph, v) {
+const isDone = !!v[scoreKey];
+if (!isOpen(scoreKey, isDone)) return loggedRow(scoreKey, title, signed(Number(v[scoreKey])) + (v[noteKey] ? ' · note saved' : ''));
+return '<div class="card"><div class="head"><h2>' + title + '</h2>' + scoreDisplay(scoreKey, v[scoreKey] ? signed(Number(v[scoreKey])) : '', true) + '</div>' +
+sliderBlock(scoreKey, -5, 5, v[scoreKey]) + textArea(noteKey, 'Note', ph) + saveBtn(scoreKey, 'Save ' + title.toLowerCase()) + '</div>';
+}
+function bowelCard(v) {
+if (!isOpen('bowel', !!v.bowel)) return loggedRow('bowel', 'Bowel movements', v.bowel);
+return '<div class="card"><h2>Bowel movements</h2>' + (v.bowel ? '<div class="saved">Saved: ' + esc(v.bowel) + '</div>' : '') + textArea('bowel', 'What happened', '') + saveBtn('bowel', 'Save', true) + '</div>';
+}
+function timeCard(key, title, v) {
+const isDone = !!v[key];
+if (!isOpen(key, isDone)) {
+let sum = v[key];
+if (key === 'lastBite' && v.firstBite) {
+const m = t => { const p = String(t).split(':'); return +p[0] * 60 + +p[1]; };
+const w = m(v.lastBite) - m(v.firstBite);
+if (w > 0) sum += ' · eating window ' + Math.floor(w / 60) + 'h ' + pad(w % 60) + 'm';
+}
+return loggedRow(key, title, sum);
+}
+return '<div class="card"><h2>' + title + '</h2><div class="inline"><label class="f"><span>Time (now, tap to change)</span><input type="time" class="in" id="i_' + key + '" data-d="' + key + '" value="' + esc(draft(key, nowHHMM())) + '"></label>' +
+'<button class="cta sm" data-save="' + key + '"' + (S.busy[key] ? ' disabled' : '') + '>' + (S.busy[key] ? '…' : 'Log') + '</button></div>' +
+(S.open[key] ? '<button class="ghost" data-close="' + key + '" style="align-self:center">Cancel</button>' : '') + '</div>';
+}
+function suppCard(v) {
+const isDone = ITEMS[6].done(v);
+if (!isOpen('supps', isDone)) {
+const parts = SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([, n]) => n);
+if (v.lcarn) parts.push('L-carnitine ' + v.lcarn + 'mg');
+if (v.mag) parts.push('Magnesium ×' + v.mag);
+return loggedRow('supps', 'Supplements', parts.join(', '));
+}
+const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k));
+const prev = (S.data && S.data.prev) || {};
+const lc = draft('lcarn', v.lcarn || prev.lcarn || ''), mg = draft('mag', v.mag || prev.mag || '');
+return '<div class="card" style="padding:4px 16px 16px"><details' + (S.open.suppsBody !== false ? ' open' : '') + ' id="supp-d" style="border:0;background:none;padding:0">' +
+'<summary><span>Supplements</span><small>' + sel.length + ' ticked</small>' + ICON.chev + '</summary><div class="in-details">' +
+'<div class="checks">' + SUPPS.map(([k, n]) => '<button data-supp="' + k + '" class="' + (sel.indexOf(k) >= 0 ? 'on' : '') + '" aria-pressed="' + (sel.indexOf(k) >= 0) + '"><span class="box">' + ICON.tick + '</span>' + n + '</button>').join('') + '</div>' +
+'<div class="pair" style="gap:8px"><label class="f"><span class="lab12">L-carnitine (mg)</span><input class="in num" id="i_lcarn" data-d="lcarn" inputmode="numeric" value="' + esc(lc) + '"></label>' +
+'<label class="f"><span class="lab12">Magnesium (capsules)</span><input class="in num" id="i_mag" data-d="mag" inputmode="numeric" value="' + esc(mg) + '"></label></div>' +
+'<div class="lab12">Amounts start at yesterday’s. Unticked ones stay blank.</div>' + saveBtn('supps', 'Save supplements') + '</div></details></div>';
+}
+function exerciseCard(v) {
+if (!isOpen('exercise', !!v.exercise)) return loggedRow('exercise', 'Exercise', v.exercise + (v.exNotes ? ' · notes saved' : ''));
+const opts = (S.data && S.data.exOptions) || [];
+const sel = draft('exSel', []);
+const seg = (key, labels) => '<div class="seg" data-segkey="' + key + '">' + labels.map(l => '<button data-segv="' + l + '" class="' + (draft(key, '') === l ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+return '<div class="card"><h2>Exercise</h2>' +
+(v.exercise ? '<div class="saved">Saved: ' + esc(v.exercise) + '</div>' : '') +
+'<div class="chips">' + opts.map(o => '<button data-chip="' + esc(o) + '" class="' + (sel.indexOf(o) >= 0 ? 'on' : '') + '" aria-pressed="' + (sel.indexOf(o) >= 0) + '">' + esc(o) + '</button>').join('') + '</div>' +
+'<details id="gym-d"' + (S.open.gym ? ' open' : '') + '><summary><span>Gym scores</span>' + ICON.chev + '</summary><div class="in-details">' +
+'<div class="grid3">' + [['g_focus', 'Focus'], ['g_energy', 'Energy'], ['g_strength', 'Strength']].map(([k, l]) => '<label class="f"><span class="lab12">' + l + ' /10</span><input class="in" id="i_' + k + '" data-d="' + k + '" inputmode="decimal" value="' + esc(draft(k, '')) + '"></label>').join('') + '</div>' +
+'<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">Duration</span>' + seg('g_dur', ['Too short', 'Good', 'Too long']) +
+'<input class="in" id="i_g_durNote" data-d="g_durNote" placeholder="Duration note, e.g. 1h30" value="' + esc(draft('g_durNote', '')) + '"></div>' +
+'<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">Intensity</span>' + seg('g_int', ['Too easy', 'Good', 'Too hard']) +
+'<input class="in" id="i_g_intNote" data-d="g_intNote" placeholder="Intensity note (optional)" value="' + esc(draft('g_intNote', '')) + '"></div>' +
+'</div></details>' +
+(v.exNotes ? '<div class="saved">Notes saved: ' + esc(v.exNotes) + '</div>' : '') +
+textArea('exNotes', 'Exercise notes', 'How today’s exercise went', 96) + saveBtn('exercise', 'Save exercise') + '</div>';
+}
+function moodNotesCard(v) {
+if (!isOpen('moodNotes', !!v.moodNotes)) return loggedRow('moodNotes', 'Mood notes', v.moodNotes);
+return '<div class="card"><h2>Mood notes</h2>' + (v.moodNotes ? '<div class="saved">Saved: ' + esc(v.moodNotes) + '</div>' : '') +
+textArea('moodNotes', 'How the day went overall', '', 110) + saveBtn('moodNotes', 'Save mood notes') + '</div>';
+}
+function moreCard(key, title, label, ph, mode, v) {
+return '<div class="card"><h2>' + title + '</h2>' + (v[key] ? '<div class="saved">Saved today:\n' + esc(v[key]) + '</div>' : '') +
+textArea(key, label, ph) + '<button class="cta alt" data-save="' + key + '"' + (S.busy[key] ? ' disabled' : '') + '>' + (S.busy[key] ? 'Saving…' : (mode === 'append' ? 'Add' : 'Save')) + '</button></div>';
+}
+// ---------------------------------------------------------------- collecting a card's items
+function collect(id) {
+const v = V(), d = S.d, items = [];
+const num = (k, lo, hi, label) => {
+const raw = String(d[k] == null ? '' : d[k]).replace(',', '.').trim();
+if (!raw) return null;
+const n = Number(raw);
+if (isNaN(n) || n < lo || n > hi) throw new Error(label);
+return n;
+};
+const text = k => String(d[k] || '').trim();
+switch (id) {
+case 'sleep':
+if ('sleepQ' in d) items.push({ key: 'sleepQ', value: Number(d.sleepQ), mode: 'new' });
+if (text('sleepNotes')) items.push({ key: 'sleepNotes', value: text('sleepNotes'), mode: 'new' });
+if (!items.length) throw new Error('Move the slider or write a note');
+break;
+case 'weight': { const n = num('weight', 30, 200, 'Enter your weight in kg'); if (n == null) throw new Error('Enter your weight'); items.push({ key: 'weight', value: n, mode: 'new' }); break; }
+case 'ketones': { const n = num('ketonesAM', 0, 10, 'Ketones should be 0 to 10'); if (n == null) throw new Error('Enter your reading'); items.push({ key: 'ketonesAM', value: n, mode: 'new' }); break; }
+case 'amMood': case 'pmMood': {
+const nk = id === 'amMood' ? 'amNotes' : 'pmNotes';
+if (id in d) items.push({ key: id, value: Number(d[id]), mode: 'new' });
+if (text(nk)) items.push({ key: nk, value: text(nk), mode: 'new' });
+if (!items.length) throw new Error('Move the slider or write a note');
+break;
+}
+case 'bowel': case 'moodNotes': case 'hunger':
+if (!text(id)) throw new Error('Write something first');
+items.push({ key: id, value: text(id), mode: 'new' });
+break;
+case 'extraKet': case 'glucose':
+if (!text(id)) throw new Error('Write something first');
+items.push({ key: id, value: text(id), mode: 'append' });
+break;
+case 'firstBite': case 'lastBite': {
+const t = draft(id, nowHHMM());
+if (!/^\d{2}:\d{2}$/.test(t)) throw new Error('Pick a time');
+items.push({ key: id, value: t, mode: 'new' });
+break;
+}
+case 'supps': {
+const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k));
+sel.forEach(k => items.push({ key: k, value: 'Yes', mode: 'new' }));
+const prev = (S.data && S.data.prev) || {};
+const lc = num('lcarn', 0, 100000, 'L-carnitine should be a number') ?? (d.lcarn === undefined && (v.lcarn || prev.lcarn) ? Number(v.lcarn || prev.lcarn) : null);
+const mg = num('mag', 0, 50, 'Magnesium should be a number') ?? (d.mag === undefined && (v.mag || prev.mag) ? Number(v.mag || prev.mag) : null);
+if (lc != null && !isNaN(lc)) items.push({ key: 'lcarn', value: lc, mode: 'new' });
+if (mg != null && !isNaN(mg)) items.push({ key: 'mag', value: mg, mode: 'new' });
+if (!items.length) throw new Error('Tick something or enter an amount');
+break;
+}
+case 'exercise': {
+const lines = [];
+[['Focus', 'g_focus'], ['Energy', 'g_energy'], ['Strength', 'g_strength']].forEach(([l, k]) => { const n = num(k, 0, 10, 'Scores need to be 0 to 10'); if (n != null) lines.push(l + ': ' + n + '/10'); });
+[['Duration', 'g_dur', 'g_durNote'], ['Intensity', 'g_int', 'g_intNote']].forEach(([l, pk, nk]) => { const p = d[pk], t = text(nk); if (p || t) lines.push(l + ': ' + [p, t].filter(Boolean).join(', ')); });
+const para = text('exNotes');
+const body = lines.join('\n') + (lines.length && para ? '\n\n' : '') + para;
+const opts = (S.data && S.data.exOptions) || [];
+const sel = draft('exSel', []);
+if (sel.length) items.push({ key: 'exercise', value: opts.filter(o => sel.indexOf(o) >= 0).join(', '), mode: 'new', sep: ', ' });
+if (body) items.push({ key: 'exNotes', value: body, mode: 'new' });
+if (!items.length) throw new Error('Pick an exercise, add a score or write a note');
+break;
+}
+}
+return items;
+}
+// ---------------------------------------------------------------- events
+function bind() {
+const app = $('#app');
+const prev = $('#prev'), next = $('#next');
+if (prev) prev.onclick = () => { S.offset--; S.data = null; S.open = {}; S.d = {}; load(); };
+if (next) next.onclick = () => { S.offset++; S.data = null; S.open = {}; S.d = {}; load(); };
+const reset = $('#reset');
+if (reset) reset.onclick = () => { if (confirmReset()) { localStorage.removeItem(LS_CFG); S.cfg = null; render(); } };
+}
+function confirmReset() { return window.confirm('Disconnect this phone? You’ll need the setup link again.'); }
+document.addEventListener('input', e => {
+const el = e.target;
+if (el.dataset.d) { S.d[el.dataset.d] = el.value; return; }
+if (el.dataset.range) {
+const k = el.dataset.range; S.d[k] = el.value;
+const min = +el.min, max = +el.max, val = +el.value, pct = x => ((x - min) / (max - min) * 100) + '%';
+el.classList.remove('untouched');
+if (min < 0) { el.style.setProperty('--lo', pct(Math.min(0, val))); el.style.setProperty('--hi', pct(Math.max(0, val))); }
+else el.style.setProperty('--fill-a', pct(val));
+const big = el.closest('.card').querySelector('.big');
+if (big) { big.classList.remove('empty'); big.textContent = min < 0 ? signed(val) : val; }
+}
+});
+document.addEventListener('click', e => {
+const b = e.target.closest('button');
+if (!b) {
+const sum = e.target.closest('summary');
+if (sum) { const det = sum.parentElement; setTimeout(() => { if (det.id === 'gym-d') S.open.gym = det.open; if (det.id === 'supp-d') S.open.suppsBody = det.open; }, 0); }
+return;
+}
+const ds = b.dataset;
+if (ds.tab) { S.tab = ds.tab; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+if (ds.edit) { S.open[ds.edit] = true; render(); return; }
+if (ds.close) { S.open[ds.close] = false; (CLEAR[ds.close] || [ds.close]).forEach(k => delete S.d[k]); render(); return; }
+if (ds.nudge) {
+const k = ds.nudge, min = +ds.min, max = +ds.max;
+const r = document.getElementById('r_' + k);
+const cur = k in S.d ? Number(S.d[k]) : Number(r.value);
+S.d[k] = String(Math.min(max, Math.max(min, cur + Number(ds.step))));
+render(); return;
+}
+if (ds.chip) {
+const sel = draft('exSel', []).slice(), i = sel.indexOf(ds.chip);
+if (i >= 0) sel.splice(i, 1); else sel.push(ds.chip);
+S.d.exSel = sel; render(); return;
+}
+if (ds.segv) {
+const k = b.parentElement.dataset.segkey;
+if (k) { S.d[k] = S.d[k] === ds.segv ? '' : ds.segv; render(); }
+return;
+}
+if (ds.supp) {
+const v = V();
+const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k)).slice(), i = sel.indexOf(ds.supp);
+if (i >= 0) sel.splice(i, 1); else sel.push(ds.supp);
+S.d.supSel = sel; render(); return;
+}
+if (ds.save) {
+let items;
+try { items = collect(ds.save); } catch (err) { toast(err.message, false); return; }
+send(ds.save, items);
+}
+});
+document.addEventListener('visibilitychange', () => {
+if (document.hidden || !S.cfg) return;
+const want = expectedLabel(S.offset);
+if (S.offset === 0 && S.data && S.data.label !== want) { S.data = null; S.open = {}; S.d = {}; S.tab = defaultTab(); }
+load(true);
+});
+// ---------------------------------------------------------------- start
+takeSetupFromLink();
+S.cfg = readCfg();
+const qTab = new URLSearchParams(location.search).get('tab');
+S.tab = TABS.indexOf(qTab) >= 0 ? qTab : defaultTab();
+if (S.cfg) load(); else render();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
