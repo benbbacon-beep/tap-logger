@@ -1,6 +1,6 @@
 // Tap Logger service worker: keeps the app's own files on the phone so it opens instantly,
 // and quietly fetches fresh copies in the background for next time.
-const CACHE = 'tap-logger-v3';
+const CACHE = 'tap-logger-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './maskable-512.png'];
 
 self.addEventListener('install', e => {

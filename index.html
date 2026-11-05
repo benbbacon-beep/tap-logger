@@ -129,6 +129,11 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 .grid11 { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; }
 .grid11 button { height: 44px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--raise); font-size: 14px; font-weight: 600; }
 .grid11 button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.grid11 button.half { font-size: 13px; letter-spacing: -0.5px; }
+.slbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); margin-bottom: -6px; }
+.slbl b { color: var(--text); font-size: 17px; font-weight: 700; }
+.slbl b.empty { color: var(--faint); }
+.sub { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
 .srow { display: flex; flex-direction: column; gap: 6px; }
 .srow .lbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); }
 .srow .lbl b { color: var(--text); font-size: 15px; font-weight: 600; }
@@ -146,7 +151,7 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue';
-const APP_VERSION = '3';
+const APP_VERSION = '4';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -178,7 +183,11 @@ pm: [['pmFog', 'Brain fog', '0 = none'], ['pmIrr', 'Irritability / agitation', '
 const filled = x => x !== '' && x != null;
 const moodDone = (v, p) => filled(v[p + 'Mood']) && SCORES[p].every(([k]) => filled(v[k]));
 const numOnly = x => (/^\s*\d+(\.\d+)?\s*$/.test(String(x == null ? '' : x)) ? String(x).trim() : '');
-const TEXT_KEYS = ['sleepNotes', 'amNotes', 'pmNotes', 'bowel', 'exNotes', 'moodNotes', 'hunger', 'extraKet', 'glucose', 'exercise'];
+const TEXT_KEYS = ['sleepNotes', 'amNotes', 'pmNotes', 'bowel', 'exNotes', 'moodNotes', 'hunger', 'extraKet', 'glucose', 'exercise', 'gymDur', 'gymInt'];
+const DAILY = [['depressive', 'Depressive symptoms', '0 = none'], ['manic', 'Manic symptoms', '0 = none'], ['dFog', 'Brain fog', '0 = none'], ['dIrr', 'Irritability / agitation', '0 = none'], ['dEnergy', 'Energy', '10 = best']];
+const DAILY_MOOD = [['dMood', 'Overall mood'], ['dHigh', 'Highest mood'], ['dLow', 'Lowest mood']];
+const GYM = [['gymFocus', 'Focus', '10 = best'], ['gymEnergy', 'Energy', '10 = best'], ['gymStrength', 'Strength', '10 = best']];
+const dailyDone = v => DAILY.concat(DAILY_MOOD).every(([k]) => filled(v[k]));
 const ITEMS = [
 { id: 'sleep', tab: 'Morning', done: v => !!v.sleepQ },
 { id: 'weight', tab: 'Morning', done: v => !!v.weight },
@@ -188,9 +197,10 @@ const ITEMS = [
 { id: 'firstBite', tab: 'Day', done: v => !!v.firstBite },
 { id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
 { id: 'exercise', tab: 'Day', done: v => !!v.exercise },
-{ id: 'moodNotes', tab: 'Day', done: v => !!v.moodNotes },
+{ id: 'hunger', tab: 'Day', done: v => !!v.hunger },
 { id: 'lastBite', tab: 'Evening', done: v => !!v.lastBite },
-{ id: 'pmMood', tab: 'Evening', done: v => moodDone(v, 'pm') }
+{ id: 'pmMood', tab: 'Evening', done: v => moodDone(v, 'pm') },
+{ id: 'dailyMood', tab: 'Evening', done: dailyDone }
 ];
 function defaultTab() {
 const h = new Date().getHours();
@@ -306,7 +316,8 @@ load(true);
 }
 const CLEAR = {
 sleep: ['sleepQ', 'sleepNotes'],
-exercise: ['exSel', 'g_focus', 'g_energy', 'g_strength', 'g_dur', 'g_durNote', 'g_int', 'g_intNote', 'exNotes'],
+exercise: ['exSel', 'gymFocus', 'gymEnergy', 'gymStrength', 'g_dur', 'g_durNote', 'g_int', 'g_intNote', 'exNotes'],
+dailyMood: ['depressive', 'manic', 'dFog', 'dIrr', 'dEnergy', 'dMood', 'dHigh', 'dLow', 'moodNotes'],
 supps: ['supSel', 'lcarn', 'mag', 'creatine'],
 amMood: ['amMood', 'amNotes', 'amFog', 'amIrr', 'amEnergy'], pmMood: ['pmMood', 'pmNotes', 'pmFog', 'pmIrr', 'pmEnergy']
 };
@@ -424,12 +435,11 @@ return '<div class="big">' + (isMood ? signed(v) : v) + '</div>';
 function tabView(t) {
 const v = V();
 if (t === 'Morning') return sleepCard(v) + weightKetCards(v) + moodCard('am', 'AM mood', 'How’s the morning feeling?', v);
-if (t === 'Day') return bowelCard(v) + timeCard('firstBite', 'First bite', v) + suppCard(v) + exerciseCard(v) + moodNotesCard(v);
-if (t === 'Evening') return timeCard('lastBite', 'Last bite', v) + moodCard('pm', 'PM mood', 'How’s the afternoon and evening been?', v);
-return moreCard('hunger', 'Hunger', 'How hungry you were today', 'e.g. mild hunger before lunch, none after', 'new', v) +
-moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
+if (t === 'Day') return bowelCard(v) + timeCard('firstBite', 'First bite', v) + suppCard(v) + exerciseCard(v) + hungerCard(v);
+if (t === 'Evening') return timeCard('lastBite', 'Last bite', v) + moodCard('pm', 'PM mood', 'How’s the afternoon and evening been?', v) + dailyMoodCard(v);
+return moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
 moreCard('glucose', 'Glucose', 'Reading and time (mmol/L)', 'e.g. 5.1 at 17:05', 'append', v) +
-'<div class="note">Optional extras. They don’t count towards “logged today”. Readings you add go on a new line under any already saved.</div>';
+'<div class="note">Optional extras. They don’t count towards “logged today”. Readings you add go on a new line under any already saved. Hunger is now in Day.</div>';
 }
 function sleepCard(v) {
 const isDone = !!v.sleepQ;
@@ -458,7 +468,11 @@ textArea(nk, 'Note', ph) + saveBtn(mk, 'Save ' + title) + '</div>';
 function scoreRow(key, label, hint, current) {
 const val = key in S.d ? S.d[key] : (filled(current) ? String(Number(current)) : '');
 let btns = '';
-for (let i = 0; i <= 10; i++) btns += '<button data-score="' + key + '" data-v="' + i + '" class="' + (val !== '' && Number(val) === i ? 'on' : '') + '" aria-pressed="' + (val !== '' && Number(val) === i) + '" aria-label="' + label + ' ' + i + '">' + i + '</button>';
+const n = val === '' ? null : Number(val);
+for (let i = 0; i <= 10; i++) {
+const on = n === i, half = n === i + 0.5;
+btns += '<button data-score="' + key + '" data-v="' + i + '" data-cur="' + esc(val) + '" class="' + (on ? 'on' : half ? 'on half' : '') + '" aria-pressed="' + (on || half) + '" aria-label="' + label + ' ' + (half ? i + ' and a half' : i) + '">' + i + (half ? '½' : '') + '</button>';
+}
 return '<div class="srow"><div class="lbl"><span>' + label + ' · ' + hint + '</span><b class="' + (val === '' ? 'empty' : '') + '">' + (val === '' ? '—' : esc(val)) + '</b></div><div class="grid11">' + btns + '</div></div>';
 }
 function bowelCard(v) {
@@ -501,27 +515,47 @@ return '<div class="card" style="padding:4px 16px 16px"><details' + (S.open.supp
 '<div class="lab12">Amounts start at yesterday’s. Unticked ones stay blank.</div>' + saveBtn('supps', 'Save supplements') + '</div></details></div>';
 }
 function exerciseCard(v) {
-if (!isOpen('exercise', !!v.exercise)) return loggedRow('exercise', 'Exercise', v.exercise + (v.exNotes ? ' · notes saved' : ''));
+const gymBits = GYM.filter(([k]) => filled(v[k])).map(([k, l]) => l.toLowerCase() + ' ' + v[k]).concat(v.gymDur ? ['duration ' + v.gymDur] : [], v.gymInt ? ['intensity ' + v.gymInt] : []);
+if (!isOpen('exercise', !!v.exercise)) return loggedRow('exercise', 'Exercise', v.exercise + (gymBits.length ? ' · ' + gymBits.join(' · ') : '') + (v.exNotes ? ' · notes saved' : ''));
 const opts = (S.data && S.data.exOptions) || [];
 const sel = draft('exSel', []);
 const seg = (key, labels) => '<div class="seg" data-segkey="' + key + '">' + labels.map(l => '<button data-segv="' + l + '" class="' + (draft(key, '') === l ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+const pick = (title, sheetKey, segKey, labels, noteKey, ph) => '<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">' + title + (v[sheetKey] ? ' · saved: ' + esc(v[sheetKey]) : '') + '</span>' + seg(segKey, labels) +
+'<input class="in" id="i_' + noteKey + '" data-d="' + noteKey + '" placeholder="' + ph + '" value="' + esc(draft(noteKey, '')) + '"></div>';
+const gymOn = sel.some(o => /gym/i.test(o)) || gymBits.length > 0;
+const open = S.open.gym === undefined ? gymOn : S.open.gym;
+const shown = GYM.map(([k]) => (k in S.d ? S.d[k] : v[k])).filter(filled);
 return '<div class="card"><h2>Exercise</h2>' +
 (v.exercise ? '<div class="saved">Saved: ' + esc(v.exercise) + '</div>' : '') +
 '<div class="chips">' + opts.map(o => '<button data-chip="' + esc(o) + '" class="' + (sel.indexOf(o) >= 0 ? 'on' : '') + '" aria-pressed="' + (sel.indexOf(o) >= 0) + '">' + esc(o) + '</button>').join('') + '</div>' +
-'<details id="gym-d"' + (S.open.gym ? ' open' : '') + '><summary><span>Gym scores</span>' + ICON.chev + '</summary><div class="in-details">' +
-'<div class="grid3">' + [['g_focus', 'Focus'], ['g_energy', 'Energy'], ['g_strength', 'Strength']].map(([k, l]) => '<label class="f"><span class="lab12">' + l + ' /10</span><input class="in" id="i_' + k + '" data-d="' + k + '" inputmode="decimal" value="' + esc(draft(k, '')) + '"></label>').join('') + '</div>' +
-'<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">Duration</span>' + seg('g_dur', ['Too short', 'Good', 'Too long']) +
-'<input class="in" id="i_g_durNote" data-d="g_durNote" placeholder="Duration note, e.g. 1h30" value="' + esc(draft('g_durNote', '')) + '"></div>' +
-'<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">Intensity</span>' + seg('g_int', ['Too easy', 'Good', 'Too hard']) +
-'<input class="in" id="i_g_intNote" data-d="g_intNote" placeholder="Intensity note (optional)" value="' + esc(draft('g_intNote', '')) + '"></div>' +
+'<details id="gym-d"' + (open ? ' open' : '') + '><summary><span>Gym scores' + (shown.length ? ' · ' + shown.join(' / ') : '') + '</span>' + ICON.chev + '</summary><div class="in-details">' +
+GYM.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
+pick('Duration', 'gymDur', 'g_dur', ['Too short', 'Good', 'Too long'], 'g_durNote', 'Duration note, e.g. 1h50') +
+pick('Intensity', 'gymInt', 'g_int', ['Too easy', 'Good', 'Too hard'], 'g_intNote', 'Intensity note (optional)') +
 '</div></details>' +
 (v.exNotes ? '<div class="saved">Notes saved: ' + esc(v.exNotes) + '</div>' : '') +
 textArea('exNotes', 'Exercise notes', 'How today’s exercise went', 96) + saveBtn('exercise', 'Save exercise') + '</div>';
 }
-function moodNotesCard(v) {
-if (!isOpen('moodNotes', !!v.moodNotes)) return loggedRow('moodNotes', 'Mood notes', v.moodNotes);
-return '<div class="card"><h2>Mood notes</h2>' + (v.moodNotes ? '<div class="saved">Saved: ' + esc(v.moodNotes) + '</div>' : '') +
-textArea('moodNotes', 'How the day went overall', '', 110) + saveBtn('moodNotes', 'Save mood notes') + '</div>';
+function hungerCard(v) {
+if (!isOpen('hunger', !!v.hunger)) return loggedRow('hunger', 'Hunger', v.hunger);
+return '<div class="card"><h2>Hunger</h2>' + (v.hunger ? '<div class="saved">Saved: ' + esc(v.hunger) + '</div>' : '') +
+textArea('hunger', 'How hungry you were today', 'e.g. mild hunger before lunch, none after') + saveBtn('hunger', 'Save hunger', true) + '</div>';
+}
+function dailyMoodCard(v) {
+const isDone = dailyDone(v);
+if (!isOpen('dailyMood', isDone)) {
+const short = { depressive: 'depressive', manic: 'manic', dFog: 'fog', dIrr: 'irritability', dEnergy: 'energy' };
+return loggedRow('dailyMood', 'Daily mood', signed(Number(v.dMood)) + ' (' + signed(Number(v.dLow)) + ' to ' + signed(Number(v.dHigh)) + ')' + DAILY.map(([k]) => ' · ' + short[k] + ' ' + v[k]).join('') + (v.moodNotes ? ' · note saved' : ''));
+}
+const moodSlider = ([k, l]) => {
+const t = k in S.d, cur = filled(v[k]) ? signed(Number(v[k])) : '';
+return '<div class="slbl"><span>' + l + '</span><b data-for="' + k + '" class="' + (t || cur ? '' : 'empty') + '">' + (t ? signed(Number(S.d[k])) : (cur || '—')) + '</b></div>' + sliderBlock(k, -5, 5, v[k]);
+};
+return '<div class="card"><h2>Daily mood</h2><div class="note" style="padding:0">The whole day, end of day.</div>' +
+DAILY.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
+'<div class="sub">Mood −5 to +5</div>' + DAILY_MOOD.map(moodSlider).join('') +
+(v.moodNotes ? '<div class="saved">Saved: ' + esc(v.moodNotes) + '</div>' : '') +
+textArea('moodNotes', 'Overall mood notes', 'How the day went overall', 96) + saveBtn('dailyMood', 'Save daily mood') + '</div>';
 }
 function moreCard(key, title, label, ph, mode, v) {
 return '<div class="card"><h2>' + title + '</h2>' + (v[key] ? '<div class="saved">Saved today:\n' + esc(v[key]) + '</div>' : '') +
@@ -546,6 +580,15 @@ if (!items.length) throw new Error('Move the slider or write a note');
 break;
 case 'weight': { const n = num('weight', 30, 200, 'Enter your weight in kg'); if (n == null) throw new Error('Enter your weight'); items.push({ key: 'weight', value: n, mode: 'new' }); break; }
 case 'ketones': { const n = num('ketonesAM', 0, 10, 'Ketones should be 0 to 10'); if (n == null) throw new Error('Enter your reading'); items.push({ key: 'ketonesAM', value: n, mode: 'new' }); break; }
+case 'dailyMood': {
+DAILY.concat(DAILY_MOOD).forEach(([k]) => { if (k in d && d[k] !== '') items.push({ key: k, value: Number(d[k]), mode: 'new' }); });
+const val = k => (k in d && d[k] !== '' ? Number(d[k]) : (filled(v[k]) ? Number(v[k]) : null));
+const lo = val('dLow'), hi = val('dHigh');
+if (lo != null && hi != null && lo > hi) throw new Error('Lowest mood can’t be above highest');
+if (text('moodNotes')) items.push({ key: 'moodNotes', value: text('moodNotes'), mode: 'new' });
+if (!items.length) throw new Error('Set a score or write a note');
+break;
+}
 case 'amMood': case 'pmMood': {
 const p = id.slice(0, 2), nk = p + 'Notes';
 if (id in d) items.push({ key: id, value: Number(d[id]), mode: 'new' });
@@ -554,7 +597,7 @@ if (text(nk)) items.push({ key: nk, value: text(nk), mode: 'new' });
 if (!items.length) throw new Error('Set a score or write a note');
 break;
 }
-case 'bowel': case 'moodNotes': case 'hunger':
+case 'bowel': case 'hunger':
 if (!text(id)) throw new Error('Write something first');
 items.push({ key: id, value: text(id), mode: 'new' });
 break;
@@ -582,15 +625,12 @@ if (!items.length) throw new Error('Tick something or enter an amount');
 break;
 }
 case 'exercise': {
-const lines = [];
-[['Focus', 'g_focus'], ['Energy', 'g_energy'], ['Strength', 'g_strength']].forEach(([l, k]) => { const n = num(k, 0, 10, 'Scores need to be 0 to 10'); if (n != null) lines.push(l + ': ' + n + '/10'); });
-[['Duration', 'g_dur', 'g_durNote'], ['Intensity', 'g_int', 'g_intNote']].forEach(([l, pk, nk]) => { const p = d[pk], t = text(nk); if (p || t) lines.push(l + ': ' + [p, t].filter(Boolean).join(', ')); });
-const para = text('exNotes');
-const body = lines.join('\n') + (lines.length && para ? '\n\n' : '') + para;
 const opts = (S.data && S.data.exOptions) || [];
 const sel = draft('exSel', []);
 if (sel.length) items.push({ key: 'exercise', value: opts.filter(o => sel.indexOf(o) >= 0).join(', '), mode: 'new', sep: ', ' });
-if (body) items.push({ key: 'exNotes', value: body, mode: 'new' });
+GYM.forEach(([k]) => { if (k in d && d[k] !== '') items.push({ key: k, value: Number(d[k]), mode: 'new' }); });
+[['gymDur', 'g_dur', 'g_durNote'], ['gymInt', 'g_int', 'g_intNote']].forEach(([k, pk, nk]) => { const t = [d[pk], text(nk)].filter(Boolean).join(', '); if (t) items.push({ key: k, value: t, mode: 'new' }); });
+if (text('exNotes')) items.push({ key: 'exNotes', value: text('exNotes'), mode: 'new' });
 if (!items.length) throw new Error('Pick an exercise, add a score or write a note');
 break;
 }
@@ -616,7 +656,7 @@ const min = +el.min, max = +el.max, val = +el.value, pct = x => ((x - min) / (ma
 el.classList.remove('untouched');
 if (min < 0) { el.style.setProperty('--lo', pct(Math.min(0, val))); el.style.setProperty('--hi', pct(Math.max(0, val))); }
 else el.style.setProperty('--fill-a', pct(val));
-const big = el.closest('.card').querySelector('.big');
+const big = document.querySelector('[data-for="' + k + '"]') || el.closest('.card').querySelector('.big');
 if (big) { big.classList.remove('empty'); big.textContent = min < 0 ? signed(val) : val; }
 }
 });
@@ -628,7 +668,14 @@ if (sum) { const det = sum.parentElement; setTimeout(() => { if (det.id === 'gym
 return;
 }
 const ds = b.dataset;
-if (ds.score) { const k = ds.score; if (S.d[k] === ds.v) delete S.d[k]; else S.d[k] = ds.v; render(); return; }
+if (ds.score) {
+// tap n -> n, tap again -> n.5, tap again -> clear
+const k = ds.score, i = Number(ds.v), cur = ds.cur === '' ? null : Number(ds.cur);
+if (cur === i && i < 10) S.d[k] = String(i + 0.5);
+else if (cur === i || cur === i + 0.5) delete S.d[k];
+else S.d[k] = String(i);
+render(); return;
+}
 if (ds.flush) { flush(true); return; }
 if (ds.update) { (window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : Promise.resolve()).then(() => location.reload()); return; }
 if (ds.tab) { S.tab = ds.tab; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
