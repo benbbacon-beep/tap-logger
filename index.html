@@ -35,8 +35,8 @@ button:disabled { opacity: .5; cursor: default; }
 .progress .row b { color: var(--text); font-weight: 600; }
 .bar { height: 8px; border-radius: 4px; background: var(--raise); overflow: hidden; }
 .bar i { display: block; height: 8px; border-radius: 4px; background: var(--accent); transition: width .3s; }
-.tabs { margin: 16px 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px; position: sticky; top: calc(env(safe-area-inset-top) + 6px); z-index: 5; box-shadow: 0 8px 16px var(--bg); }
-.tabs button { height: 48px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 500; font-size: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.tabs { margin: 16px 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px; position: sticky; top: calc(env(safe-area-inset-top) + 6px); z-index: 5; box-shadow: 0 8px 16px var(--bg); }
+.tabs button { height: 50px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 500; font-size: 13px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
 .tabs button span { font-size: 11px; }
 .tabs button.on { background: var(--sel); color: var(--text); font-weight: 600; }
 .tabs button.on span, .tabs button span.done { color: var(--accent); }
@@ -111,7 +111,9 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 .foot button { background: none; border: 0; color: var(--muted); text-decoration: underline; font-size: 12px; padding: 8px; }
 #toast { position: fixed; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 16px); max-width: 488px; margin: 0 auto; padding: 14px 16px; border-radius: 14px; font-weight: 600; text-align: center; transform: translateY(140%); transition: transform .25s; z-index: 30; }
 #toast.show { transform: none; }
-#toast.ok { background: var(--accent); color: var(--accent-ink); }
+#toast.ok { background: var(--text); color: var(--bg); box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+#toast.act { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 16px; text-align: left; }
+#toast button { height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; }
 #toast.err { background: #7F1D1D; color: #FEE2E2; }
 #sheet { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
 #sheet.show { display: flex; }
@@ -126,9 +128,12 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 .setup p { margin: 0; color: var(--muted); line-height: 1.5; }
 .loading { color: var(--muted); text-align: center; padding: 40px 0; }
 .stale { opacity: .65; transition: opacity .2s; }
-.grid11 { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; }
-.grid11 button { height: 44px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--raise); font-size: 14px; font-weight: 600; }
-.grid11 button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.grid11 { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--bg); }
+.grid11 button { height: 46px; padding: 0; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: transparent; font-size: 15px; font-weight: 600; }
+.grid11 button:last-child { border-right: 0; }
+.grid11 button.on { background: var(--accent); color: var(--accent-ink); }
+.grid11 button:active { transform: none; background: var(--raise); }
+.grid11 button.on:active { background: var(--accent); }
 .grid11 button.half { font-size: 13px; letter-spacing: -0.5px; }
 .slbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); margin-bottom: -6px; }
 .slbl b { color: var(--text); font-size: 17px; font-weight: 700; }
@@ -140,6 +145,41 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 .srow .lbl b.empty { color: var(--faint); }
 .upd { width: 100%; height: 48px; margin-bottom: 12px; border: 1px solid var(--accent); border-radius: 14px; background: var(--tick-bg); color: var(--accent); font-size: 15px; font-weight: 600; }
 .pending { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 14px; border: 1px dashed var(--line); border-radius: 12px; font-size: 13px; color: var(--muted); }
+.sec { margin: 10px 2px -2px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.tl { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 4px 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tl .rail, .tl .fill { position: absolute; left: 12.5%; top: 27px; height: 2px; background: var(--line); }
+.tl .rail { right: 12.5%; }
+.tl .fill { background: var(--accent); transition: width .3s; }
+.tl button { position: relative; background: none; border: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
+.tl .dot { width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; }
+.tl .dot svg { width: 16px; height: 16px; }
+.tl .done .dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tl .now .dot { border-color: var(--accent); }
+.tl .now .dot::after { content: ''; width: 10px; height: 10px; border-radius: 5px; background: var(--accent); }
+.tl .missed .dot { border-style: dashed; border-color: var(--muted); }
+.tl b { font-size: 13px; font-weight: 600; }
+.tl .later b, .tl .missed b { color: var(--muted); }
+.tl small { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.tl .missed small { color: #FBBF24; }
+.autobar { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.autobar .bar { flex-grow: 1; height: 4px; }
+.autobar .bar i { height: 4px; }
+.autobar .ghost { height: 36px; padding: 0 4px; color: var(--muted); text-decoration: underline; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags span { padding: 7px 10px; border-radius: 16px; background: var(--raise); border: 1px solid var(--line); font-size: 13px; }
+.two { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
+.caught { align-items: center; text-align: center; padding: 28px 16px; }
+.caught .tick { width: 52px; height: 52px; border-radius: 26px; }
+.caught .tick svg { width: 26px; height: 26px; }
+.sk { height: 130px; border-radius: 18px; background: linear-gradient(90deg, var(--card) 0%, var(--raise) 50%, var(--card) 100%); background-size: 200% 100%; animation: sh 1.3s linear infinite; }
+.sk.t { height: 58px; border-radius: 14px; margin: 16px 0; }
+@keyframes sh { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes pop { from { transform: scale(.96); opacity: .3; } to { transform: none; opacity: 1; } }
+.logged.pop { animation: pop .35s ease-out; }
+button:not(:disabled):active { transform: scale(.97); }
+button { transition: transform .08s, background-color .15s; }
+.big, .srow .lbl b, .slbl b, .tile .val, .progress b, .tl small { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .sk, .logged.pop { animation: none; } button:active { transform: none; } }
 .pending button { height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--raise); font-size: 13px; font-weight: 600; }
 </style>
 </head>
@@ -151,7 +191,7 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue';
-const APP_VERSION = '5';
+const APP_VERSION = '6';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -174,7 +214,7 @@ const S = {
 cfg: null, offset: 0, data: null, loading: false, stale: false,
 tab: null, open: {}, busy: {}, d: {}  // d = drafts the user has typed but not saved
 };
-const TABS = ['Morning', 'Day', 'Evening', 'More'];
+const TABS = ['Now', 'Morning', 'Day', 'Evening', 'More'];
 const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3'], ['electro', 'Electrolytes']];
 const SCORES = {
 am: [['amFog', 'Brain fog', '0 = none'], ['amIrr', 'Irritability / agitation', '0 = none'], ['amEnergy', 'Energy', '10 = best']],
@@ -191,25 +231,23 @@ const GYM = [['gymFocus', 'Focus', '10 = best'], ['gymEnergy', 'Energy', '10 = b
 const dailyDone = v => DAILY.concat(DAILY_MOOD).every(([k]) => filled(v[k]));
 const ITEMS = [
 { id: 'sleep', tab: 'Morning', done: v => !!v.sleepQ },
+{ id: 'weight', tab: 'Morning', done: v => !!v.weight },
 { id: 'ketones', tab: 'Morning', done: v => !!v.ketonesAM },
 { id: 'amMood', tab: 'Morning', done: v => moodDone(v, 'am') },
 { id: 'bowel', tab: 'Day', done: v => !!v.bowel },
 { id: 'firstBite', tab: 'Day', done: v => !!v.firstBite },
 { id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'electro', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
 { id: 'exercise', tab: 'Day', done: v => !!v.exercise },
-{ id: 'hunger', tab: 'Day', done: v => !!v.hunger },
 { id: 'aftMood', tab: 'Day', done: v => moodDone(v, 'aft') },
 { id: 'lastBite', tab: 'Evening', done: v => !!v.lastBite },
 { id: 'eveMood', tab: 'Evening', done: v => moodDone(v, 'eve') },
+{ id: 'hunger', tab: 'Evening', done: v => ('hungerScore' in v ? filled(v.hungerScore) : !!v.hunger) },
 { id: 'dailyMood', tab: 'Evening', done: dailyDone }
 ];
-function defaultTab() {
-const h = new Date().getHours();
-if (h < 3) return 'Evening';   // still yesterday's log until 3am
-if (h < 12) return 'Morning';
-if (h < 18) return 'Day';
-return 'Evening';
-}
+function defaultTab() { return 'Now'; }
+// which mood block is it now (before 3am still counts as yesterday's evening)
+const blockNow = () => { const h = new Date().getHours(); return h < 3 ? 'eve' : h < 12 ? 'am' : h < 18 ? 'aft' : 'eve'; };
+const MOOD_META = { am: ['AM mood', 'Waking to 12 PM', 'Morning', 'Waking–12'], aft: ['Afternoon mood', '12 PM to 6 PM', 'Day', '12–6 PM'], eve: ['Evening mood', '6 PM until bed', 'Evening', '6 PM–bed'] };
 function expectedLabel(offset) {
 const now = new Date();
 const d = new Date(now.getTime() + ((now.getHours() < 3 ? -1 : 0) + offset) * 864e5);
@@ -236,10 +274,13 @@ return base;
 };
 const draft = (k, dflt) => (k in S.d ? S.d[k] : dflt);
 let toastTimer;
-function toast(msg, ok) {
+function toast(msg, ok, action) {
 const t = $('#toast');
-t.textContent = msg; t.className = (ok ? 'ok' : 'err') + ' show';
-clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = t.className.replace(' show', ''), ok ? 1800 : 4500);
+t.innerHTML = '<span>' + esc(msg) + '</span>' + (action ? '<button id="toast-act">' + esc(action.label) + '</button>' : '');
+t.className = (ok ? 'ok' : 'err') + (action ? ' act' : '') + ' show';
+const hide = () => { t.className = t.className.replace(' show', ''); };
+if (action) $('#toast-act').onclick = () => { hide(); action.fn(); };
+clearTimeout(toastTimer); toastTimer = setTimeout(hide, action ? 6000 : ok ? 1800 : 4500);
 if (ok && navigator.vibrate) navigator.vibrate(12);
 }
 function netErr(msg) { const e = new Error(msg); e.net = true; return e; }
@@ -272,27 +313,32 @@ S.loading = false;
 render();
 }
 // ---------------------------------------------------------------- saving
-async function send(cardId, items, label) {
-if (S.busy[cardId]) return;
+async function send(cardId, items, label, quiet) {
+if (S.busy[cardId]) return { status: 'busy' };
+let out = { status: 'error' };
 label = label || (S.data ? S.data.label : expectedLabel(S.offset));
 S.busy[cardId] = true; render();
 try {
 const r = await api('save', { items, label });
-if (r.ok) { clearCard(cardId, items); toast('Saved', true); load(true); }
-else openConflicts(cardId, items, r.conflicts, label);
+if (r.ok) { clearCard(cardId, items); if (!quiet) toast('Saved', true); load(true); out = { status: 'ok' }; }
+else { openConflicts(cardId, items, r.conflicts, label); out = { status: 'conflict' }; }
 } catch (e) {
 if (e.net) {
-const q = getQ(); q.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2), cardId, items, label }); setQ(q);
+const id = Date.now() + '-' + Math.random().toString(36).slice(2);
+const q = getQ(); q.push({ id, cardId, items, label }); setQ(q);
 clearCard(cardId, items);
-toast('No signal. Kept on the phone, it’ll send when you’re back online', true);
+if (!quiet) toast('No signal. Kept on the phone, it’ll send when you’re back online', true);
+out = { status: 'queued', id };
 } else toast(e.message, false);
 }
 S.busy[cardId] = false; render();
+return out;
 }
 function clearCard(cardId, items) {
 items.forEach(it => { delete S.d[it.key]; });
 (CLEAR[cardId] || []).forEach(k => delete S.d[k]);
 S.open[cardId] = false;
+S.justDone = cardId; setTimeout(() => { if (S.justDone === cardId) S.justDone = null; }, 500);
 }
 let flushing = false;
 async function flush(manual) {
@@ -319,7 +365,7 @@ const CLEAR = {
 sleep: ['sleepQ', 'sleepNotes'],
 exercise: ['exSel', 'gymFocus', 'gymEnergy', 'gymStrength', 'g_dur', 'g_durNote', 'g_int', 'g_intNote', 'exNotes'],
 dailyMood: ['depressive', 'manic', 'dFog', 'dIrr', 'dEnergy', 'dMood', 'dHigh', 'dLow', 'moodNotes'],
-supps: ['supSel', 'lcarn', 'mag', 'creatine'],
+supps: ['supSel', 'lcarn', 'mag', 'creatine'], hunger: ['hunger', 'hungerScore'],
 amMood: ['amMood', 'amFog', 'amIrr', 'amEnergy'], aftMood: ['aftMood', 'aftFog', 'aftIrr', 'aftEnergy'], eveMood: ['eveMood', 'eveFog', 'eveIrr', 'eveEnergy']
 };
 function openConflicts(cardId, items, conflicts, label) {
@@ -361,7 +407,7 @@ const app = $('#app');
 if (!S.cfg) { app.innerHTML = setupView(); bindSetup(); return; }
 const active = document.activeElement && document.activeElement.id;
 const caret = active && document.activeElement.selectionStart;
-app.innerHTML = headerView() + (S.data ? tabsView() + '<div class="stack' + (S.stale ? ' stale' : '') + '">' + tabView(S.tab) + '</div>' : '<div class="loading">Loading…</div>') + footView();
+app.innerHTML = headerView() + (S.data ? tabsView() + '<div class="stack' + (S.stale ? ' stale' : '') + '">' + tabView(S.tab) + '</div>' : '<div class="sk t"></div><div class="stack"><div class="sk"></div><div class="sk"></div><div class="sk" style="height:200px"></div></div>') + footView();
 bind();
 if (active) { const el = document.getElementById(active); if (el) { el.focus(); try { if (caret != null) el.setSelectionRange(caret, caret); } catch (e) {} } }
 }
@@ -385,7 +431,7 @@ const vals = V();
 const counted = ITEMS.filter(i => i.done(vals)).length;
 const q = getQ().length;
 return (S.update ? '<button class="upd" data-update="1">Update ready · tap to refresh</button>' : '') + '<div class="top"><button class="round" id="prev" aria-label="Previous day"' + (S.offset <= -6 ? ' disabled' : '') + '>' + ICON.left + '</button>' +
-'<div class="date"><small>' + rel + (S.loading ? ' · updating' : '') + '</small><strong>' + esc(lab) + '</strong></div>' +
+'<div class="date"><small>' + rel + (S.offset === 0 ? ' · ' + MOOD_META[blockNow()][0].replace(' mood', '') : '') + (S.loading ? ' · updating' : '') + '</small><strong>' + esc(lab) + '</strong></div>' +
 '<button class="round" id="next" aria-label="Next day"' + (S.offset >= 0 ? ' disabled' : '') + '>' + ICON.right + '</button></div>' +
 (q ? '<div class="pending"><span>' + q + (q === 1 ? ' save' : ' saves') + ' waiting for signal</span><button data-flush="1">Send now</button></div>' : '') +
 (S.data ? '<div class="progress"><div class="row"><span>Logged ' + (S.offset === 0 ? 'today' : 'that day') + '</span><b>' + counted + ' of ' + ITEMS.length + '</b></div><div class="bar"><i style="width:' + Math.round(counted / ITEMS.length * 100) + '%"></i></div></div>' : '');
@@ -395,7 +441,8 @@ const vals = V();
 return '<nav class="tabs" aria-label="Part of the day">' + TABS.map(t => {
 const its = ITEMS.filter(i => i.tab === t);
 const n = its.filter(i => i.done(vals)).length;
-const sub = t === 'More' ? 'Extras' : n === its.length ? 'Done' : n + ' / ' + its.length;
+const due = t === 'Now' ? nowCount(vals) : 0;
+const sub = t === 'Now' ? (due ? due + ' due' : 'Done') : t === 'More' ? 'Extras' : n === its.length ? 'Done' : n + ' / ' + its.length;
 return '<button data-tab="' + t + '" class="' + (S.tab === t ? 'on' : '') + '" aria-pressed="' + (S.tab === t) + '">' + t + '<span class="' + (sub === 'Done' ? 'done' : '') + '">' + sub + '</span></button>';
 }).join('') + '</nav>';
 }
@@ -404,7 +451,7 @@ return '<div class="foot">Tap Logger · writes to your Daily Log<br><button id="
 }
 // ----- building blocks
 function loggedRow(id, title, summary) {
-return '<div class="logged"><div class="tick">' + ICON.tick + '</div><div class="txt"><b>' + esc(title) + '</b><span>' + esc(summary) + '</span></div>' +
+return '<div class="logged' + (S.justDone === id ? ' pop' : '') + '"><div class="tick">' + ICON.tick + '</div><div class="txt"><b>' + esc(title) + '</b><span>' + esc(summary) + '</span></div>' +
 '<button class="ghost" data-edit="' + id + '">Edit</button></div>';
 }
 function isOpen(id, isDone) { return !isDone || S.open[id]; }
@@ -435,12 +482,83 @@ return '<div class="big">' + (isMood ? signed(v) : v) + '</div>';
 // ----- tabs
 function tabView(t) {
 const v = V();
-if (t === 'Morning') return sleepCard(v) + ketonesCard(v) + moodCard('am', 'AM mood', 'Waking to 12 PM', v);
-if (t === 'Day') return bowelCard(v) + timeCard('firstBite', 'First bite', v) + suppCard(v) + exerciseCard(v) + hungerCard(v) + moodCard('aft', 'Afternoon mood', '12 PM to 6 PM', v);
-if (t === 'Evening') return timeCard('lastBite', 'Last bite', v) + moodCard('eve', 'Evening mood', '6 PM until bed', v) + dailyMoodCard(v);
+if (t === 'Now') return nowView(v);
+if (t === 'Morning') return cards(['sleep', 'weight', 'ketones', 'amMood'], v);
+if (t === 'Day') return cards(['bowel', 'firstBite', 'supps', 'exercise', 'aftMood'], v);
+if (t === 'Evening') return cards(['lastBite', 'eveMood', 'hunger', 'dailyMood'], v);
 return moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
 moreCard('glucose', 'Glucose', 'Reading and time (mmol/L)', 'e.g. 5.1 at 17:05', 'append', v) +
-'<div class="note">Optional extras. They don’t count towards “logged today”. Readings you add go on a new line under any already saved. Hunger is now in Day.</div>';
+'<div class="note">Optional extras. They don’t count towards “logged today”. Readings you add go on a new line under any already saved.</div>';
+}
+// one card per item; weight + ketones side by side when both are shown
+function cards(ids, v) {
+let h = '';
+for (let i = 0; i < ids.length; i++) {
+const id = ids[i];
+if (id === 'weight' && ids[i + 1] === 'ketones') { h += '<div class="pair">' + tile(v, 'weight') + tile(v, 'ketones') + '</div>'; i++; continue; }
+h += itemCard(id, v);
+}
+return h;
+}
+function itemCard(id, v) {
+switch (id) {
+case 'sleep': return sleepCard(v);
+case 'weight': case 'ketones': return tile(v, id);
+case 'amMood': case 'aftMood': case 'eveMood': { const p = id.replace('Mood', ''); return moodCard(p, MOOD_META[p][0], MOOD_META[p][1], v); }
+case 'bowel': return bowelCard(v);
+case 'firstBite': return timeCard('firstBite', 'First bite', v);
+case 'lastBite': return timeCard('lastBite', 'Last bite', v);
+case 'supps': return suppCard(v);
+case 'exercise': return exerciseCard(v);
+case 'hunger': return hungerCard(v);
+case 'dailyMood': return dailyMoodCard(v);
+}
+return '';
+}
+// ----- Now: what's due, what's missed, what's left in this part of the day
+function nowParts(v) {
+const h = new Date().getHours(), past = S.offset !== 0;
+const order = ['Morning', 'Day', 'Evening'];
+const cur = past ? null : blockNow();
+const curTab = cur ? MOOD_META[cur][2] : null, ci = cur ? order.indexOf(curTab) : 3;
+const undone = ITEMS.filter(i => !i.done(v));
+const dueMood = cur && !moodDone(v, cur) ? cur + 'Mood' : null;
+const dailyDue = !past && !dailyDone(v) && (h >= 21 || h < 3 || moodDone(v, 'eve'));
+const missed = past ? undone : undone.filter(i => order.indexOf(i.tab) < ci);
+const todo = past ? [] : undone.filter(i => i.tab === curTab && i.id !== dueMood && i.id !== 'dailyMood');
+return { cur, past, dueMood, dailyDue, missed, todo };
+}
+function nowCount(v) { const P = nowParts(v); return (P.dueMood ? 1 : 0) + (P.dailyDue ? 1 : 0) + P.missed.length + P.todo.length; }
+function timelineView(v, P) {
+const nodes = ['am', 'aft', 'eve', 'daily'];
+const curIdx = P.past ? -1 : (P.dailyDue && moodDone(v, P.cur) ? 3 : nodes.indexOf(P.cur));
+let done = 0;
+const cells = nodes.map((p, i) => {
+const isDaily = p === 'daily';
+const ok = isDaily ? dailyDone(v) : moodDone(v, p);
+const val = isDaily ? v.dMood : v[p + 'Mood'];
+const when = isDaily ? 'At bed' : MOOD_META[p][3];
+const st = ok ? 'done' : i === curIdx ? 'now' : (curIdx < 0 || i < curIdx) ? 'missed' : 'later';
+const sub = ok ? signed(Number(val)) + ' · ' + when : st === 'missed' ? (P.past ? 'Not logged' : 'Missed') : when;
+const name = isDaily ? 'Overall' : p === 'am' ? 'AM' : p === 'aft' ? 'Afternoon' : 'Evening';
+return '<button class="' + st + '" data-tab="' + (isDaily ? 'Evening' : MOOD_META[p][2]) + '" aria-label="' + name + ' mood, ' + (ok ? 'logged' : st) + '"><span class="dot">' + (ok ? ICON.tick : '') + '</span><b>' + name + '</b><small>' + esc(sub) + '</small></button>';
+});
+const reach = curIdx < 0 ? 0 : curIdx;
+return '<div class="tl"><span class="rail"></span><span class="fill" style="width:' + (reach / 3 * 75) + '%"></span>' + cells.join('') + '</div>';
+}
+function nowView(v) {
+const P = nowParts(v);
+const sec = s => '<div class="sec">' + s + '</div>';
+let h = timelineView(v, P);
+const due = [P.dueMood, P.dailyDue ? 'dailyMood' : null].filter(Boolean);
+if (due.length) h += sec('Due now') + cards(due, v);
+if (P.missed.length) h += sec(P.past ? 'Not logged' : 'Missed earlier') + cards(P.missed.map(i => i.id), v);
+if (P.todo.length) h += sec('Still to do') + cards(P.todo.map(i => i.id), v);
+if (!due.length && !P.missed.length && !P.todo.length) {
+const next = P.past || dailyDone(v) ? 'Everything for this day is logged.' : P.cur === 'am' ? 'Next: Afternoon mood from 12 PM.' : P.cur === 'aft' ? 'Next: Evening mood from 6 PM.' : 'Next: Overall mood at bed.';
+h += '<div class="card caught"><div class="tick">' + ICON.tick + '</div><h2>All caught up</h2><div class="note">' + next + '</div></div>';
+}
+return h;
 }
 function sleepCard(v) {
 const isDone = !!v.sleepQ;
@@ -448,24 +566,25 @@ if (!isOpen('sleep', isDone)) return loggedRow('sleep', 'Sleep', v.sleepQ + ' / 
 return '<div class="card"><div class="head"><h2>Sleep quality</h2>' + scoreDisplay('sleepQ', v.sleepQ) + '</div>' +
 sliderBlock('sleepQ', 0, 10, v.sleepQ) + textArea('sleepNotes', 'Sleep notes', 'How was the night?') + saveBtn('sleep', 'Save sleep') + '</div>';
 }
-function ketonesCard(v) {
-const tile = (key, id, lab, unit, ph) => {
+function tile(v, id) {
+const [key, lab, unit, ph] = id === 'weight' ? ['weight', 'Weight', 'kg', '76.0'] : ['ketonesAM', 'Waking ketones', 'mmol/L', '1.5'];
 if (v[key] && !S.open[id]) return '<div class="tile"><div class="lab">' + lab + '</div><button class="val" data-edit="' + id + '" aria-label="Edit ' + lab + '">' + esc(v[key]) + '<small> ' + unit + '</small></button><div class="ok">Logged · tap to edit</div></div>';
 return '<div class="tile"><label class="f"><span>' + lab + ' (' + unit + ')</span><input class="in num" id="i_' + key + '" data-d="' + key + '" inputmode="decimal" placeholder="' + ph + '" value="' + esc(draft(key, '')) + '"></label>' +
 '<button class="cta" style="height:44px" data-save="' + id + '"' + (S.busy[id] ? ' disabled' : '') + '>' + (S.busy[id] ? 'Saving…' : 'Save') + '</button></div>';
-};
-return tile('ketonesAM', 'ketones', 'Waking ketones', 'mmol/L', '1.5');
 }
 function moodCard(p, title, when, v) {
 const mk = p + 'Mood', sc = SCORES[p];
+const first = !moodDone(v, p) && !S.open[mk];  // a first fill saves itself; editing a saved one uses Save
+const set = [mk].concat(sc.map(([k]) => k)).filter(k => (k in S.d ? S.d[k] !== '' : filled(v[k]))).length;
 if (!isOpen(mk, moodDone(v, p))) {
 const short = { Fog: 'fog', Irr: 'irritability', Energy: 'energy' };
 return loggedRow(mk, title, signed(Number(v[mk])) + sc.map(([k]) => ' · ' + short[k.slice(p.length)] + ' ' + v[k]).join(''));
 }
 return '<div class="card"><div class="head"><h2>' + title + '</h2>' + scoreDisplay(mk, filled(v[mk]) ? signed(Number(v[mk])) : '', true) + '</div>' +
-'<div class="note" style="padding:0;margin-top:-8px">' + when + '</div>' +
+'<div class="note" style="padding:0;margin-top:-8px">' + when + (first ? ' · saves itself when all 4 are set' : '') + '</div>' +
 sliderBlock(mk, -5, 5, v[mk]) + sc.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
-saveBtn(mk, 'Save ' + title) + '</div>';
+(first ? '<div class="autobar"><div class="bar"><i style="width:' + (set * 25) + '%"></i></div><span>' + (S.busy[mk] || AUTO[mk] ? 'Saving…' : set + ' of 4 set') + '</span>' +
+(set && set < 4 && !S.busy[mk] ? '<button class="ghost" data-save="' + mk + '">Save now</button>' : '') + '</div>' : saveBtn(mk, 'Save ' + title)) + '</div>';
 }
 function scoreRow(key, label, hint, current) {
 const val = key in S.d ? S.d[key] : (filled(current) ? String(Number(current)) : '');
@@ -505,8 +624,15 @@ if (v.mag) parts.push('Magnesium ×' + v.mag);
 if (v.creatine) parts.push(numOnly(v.creatine) ? 'Creatine ' + v.creatine + 'g' : 'Creatine');
 return loggedRow('supps', 'Supplements', parts.join(', '));
 }
-const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k));
 const prev = (S.data && S.data.prev) || {};
+const yTicks = SUPPS.filter(([k]) => /^y/i.test(prev[k] || '')).map(([, n]) => n);
+const yAmts = [['lcarn', 'L-carnitine ', ' mg'], ['mag', 'Magnesium ×', ''], ['creatine', 'Creatine ', ' g']].filter(([k]) => numOnly(prev[k]) !== '').map(([k, a, b]) => a + numOnly(prev[k]) + b);
+if (!isDone && !S.open.suppEdit && (yTicks.length || yAmts.length)) {
+return '<div class="card"><div class="head"><h2>Supplements</h2><span class="lab12">Yesterday</span></div>' +
+'<div class="tags">' + yTicks.concat(yAmts).map(x => '<span>' + esc(x) + '</span>').join('') + '</div>' +
+'<div class="two"><button class="cta" data-save="suppsSame"' + (S.busy.suppsSame ? ' disabled' : '') + '>' + (S.busy.suppsSame ? 'Saving…' : 'Same as yesterday') + '</button><button class="cta alt" data-suppedit="1">Change</button></div></div>';
+}
+const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k));
 const lc = draft('lcarn', v.lcarn || numOnly(prev.lcarn)), mg = draft('mag', v.mag || numOnly(prev.mag)), cr = draft('creatine', v.creatine || numOnly(prev.creatine));
 return '<div class="card" style="padding:4px 16px 16px"><details' + (S.open.suppsBody !== false ? ' open' : '') + ' id="supp-d" style="border:0;background:none;padding:0">' +
 '<summary><span>Supplements</span><small>' + sel.length + ' ticked</small>' + ICON.chev + '</summary><div class="in-details">' +
@@ -539,9 +665,13 @@ pick('Intensity', 'gymInt', 'g_int', ['Too easy', 'Good', 'Too hard'], 'g_intNot
 textArea('exNotes', 'Exercise notes', 'How today’s exercise went', 96) + saveBtn('exercise', 'Save exercise') + '</div>';
 }
 function hungerCard(v) {
-if (!isOpen('hunger', !!v.hunger)) return loggedRow('hunger', 'Hunger', v.hunger);
-return '<div class="card"><h2>Hunger</h2>' + (v.hunger ? '<div class="saved">Saved: ' + esc(v.hunger) + '</div>' : '') +
-textArea('hunger', 'How hungry you were today', 'e.g. mild hunger before lunch, none after') + saveBtn('hunger', 'Save hunger', true) + '</div>';
+const hasScore = 'hungerScore' in v;
+const isDone = ITEMS.find(i => i.id === 'hunger').done(v);
+if (!isOpen('hunger', isDone)) return loggedRow('hunger', 'Hunger', [filled(v.hungerScore) ? v.hungerScore + ' / 10' : '', v.hunger].filter(Boolean).join(' · '));
+return '<div class="card"><h2>Hunger</h2>' +
+(hasScore ? scoreRow('hungerScore', 'How hungry today', '10 = very hungry', v.hungerScore) : '') +
+(v.hunger ? '<div class="saved">Saved: ' + esc(v.hunger) + '</div>' : '') +
+textArea('hunger', hasScore ? 'Note' : 'How hungry you were today', 'e.g. hungry before lunch, none after dinner') + saveBtn('hunger', 'Save hunger', true) + '</div>';
 }
 function dailyMoodCard(v) {
 const isDone = dailyDone(v);
@@ -597,10 +727,23 @@ SCORES[p].forEach(([k]) => { if (k in d && d[k] !== '') items.push({ key: k, val
 if (!items.length) throw new Error('Set a score first');
 break;
 }
-case 'bowel': case 'hunger':
+case 'bowel':
 if (!text(id)) throw new Error('Write something first');
 items.push({ key: id, value: text(id), mode: 'new' });
 break;
+case 'hunger':
+if ('hungerScore' in d && d.hungerScore !== '') items.push({ key: 'hungerScore', value: Number(d.hungerScore), mode: 'new' });
+if (text('hunger')) items.push({ key: 'hunger', value: text('hunger'), mode: 'new' });
+if (!items.length) throw new Error('Set a score or write something');
+break;
+case 'weight': { const n = num('weight', 30, 200, 'Enter your weight in kg'); if (n == null) throw new Error('Enter your weight'); items.push({ key: 'weight', value: n, mode: 'new' }); break; }
+case 'suppsSame': {
+const prev = (S.data && S.data.prev) || {};
+SUPPS.filter(([k]) => /^y/i.test(prev[k] || '')).forEach(([k]) => items.push({ key: k, value: 'Yes', mode: 'new' }));
+['lcarn', 'mag', 'creatine'].forEach(k => { if (numOnly(prev[k]) !== '') items.push({ key: k, value: Number(numOnly(prev[k])), mode: 'new' }); });
+if (!items.length) throw new Error('Nothing from yesterday to copy');
+break;
+}
 case 'extraKet': case 'glucose':
 if (!text(id)) throw new Error('Write something first');
 items.push({ key: id, value: text(id), mode: 'append' });
@@ -637,6 +780,33 @@ break;
 }
 return items;
 }
+// ---------------------------------------------------------------- mood blocks save themselves
+const AUTO = {};
+function maybeAuto(k) {
+const p = ['aft', 'eve', 'am'].find(x => k === x + 'Mood' || SCORES[x].some(([s]) => s === k));
+if (!p) return;
+const mk = p + 'Mood', v = V();
+clearTimeout(AUTO[mk]); delete AUTO[mk];
+if (moodDone(v, p) || S.open[mk]) return;
+const all = [mk].concat(SCORES[p].map(([s]) => s)).every(x => (x in S.d ? S.d[x] !== '' : filled(v[x])));
+if (all) AUTO[mk] = setTimeout(() => { delete AUTO[mk]; autoSave(p); }, 1000);
+}
+async function autoSave(p) {
+const mk = p + 'Mood';
+let items; try { items = collect(mk); } catch (e) { return; }
+const v = V(), label = S.data ? S.data.label : expectedLabel(S.offset);
+const undo = items.filter(it => !filled(v[it.key])).map(it => ({ key: it.key, mode: 'clear', expect: it.value }));
+const r = await send(mk, items, label, true);
+const name = MOOD_META[p][0];
+if (r.status === 'ok') toast(name + ' saved', true, { label: 'Undo', fn: () => undoSave(undo, label) });
+else if (r.status === 'queued') toast(name + ' kept on the phone', true, { label: 'Undo', fn: () => { setQ(getQ().filter(j => j.id !== r.id)); render(); toast('Undone', true); } });
+}
+async function undoSave(undo, label) {
+if (!undo.length) return;
+try { await api('save', { items: undo, label }); toast('Undone', true); }
+catch (e) { toast(e.net ? 'No signal, couldn’t undo. Edit it instead.' : e.message, false); }
+load(true);
+}
 // ---------------------------------------------------------------- events
 function bind() {
 const app = $('#app');
@@ -658,6 +828,7 @@ if (min < 0) { el.style.setProperty('--lo', pct(Math.min(0, val))); el.style.set
 else el.style.setProperty('--fill-a', pct(val));
 const big = document.querySelector('[data-for="' + k + '"]') || el.closest('.card').querySelector('.big');
 if (big) { big.classList.remove('empty'); big.textContent = min < 0 ? signed(val) : val; }
+maybeAuto(k);
 }
 });
 document.addEventListener('click', e => {
@@ -674,8 +845,10 @@ const k = ds.score, i = Number(ds.v), cur = ds.cur === '' ? null : Number(ds.cur
 if (cur === i && i < 10) S.d[k] = String(i + 0.5);
 else if (cur === i || cur === i + 0.5) delete S.d[k];
 else S.d[k] = String(i);
-render(); return;
+if (navigator.vibrate) navigator.vibrate(8);
+maybeAuto(k); render(); return;
 }
+if (ds.suppedit) { S.open.suppEdit = true; render(); return; }
 if (ds.flush) { flush(true); return; }
 if (ds.update) { (window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : Promise.resolve()).then(() => location.reload()); return; }
 if (ds.tab) { S.tab = ds.tab; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -686,7 +859,7 @@ const k = ds.nudge, min = +ds.min, max = +ds.max;
 const r = document.getElementById('r_' + k);
 const cur = k in S.d ? Number(S.d[k]) : Number(r.value);
 S.d[k] = String(Math.min(max, Math.max(min, cur + Number(ds.step))));
-render(); return;
+maybeAuto(k); render(); return;
 }
 if (ds.chip) {
 const sel = draft('exSel', []).slice(), i = sel.indexOf(ds.chip);
