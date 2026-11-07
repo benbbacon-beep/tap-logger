@@ -151,7 +151,7 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue';
-const APP_VERSION = '4';
+const APP_VERSION = '5';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -175,31 +175,32 @@ cfg: null, offset: 0, data: null, loading: false, stale: false,
 tab: null, open: {}, busy: {}, d: {}  // d = drafts the user has typed but not saved
 };
 const TABS = ['Morning', 'Day', 'Evening', 'More'];
-const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3']];
+const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3'], ['electro', 'Electrolytes']];
 const SCORES = {
 am: [['amFog', 'Brain fog', '0 = none'], ['amIrr', 'Irritability / agitation', '0 = none'], ['amEnergy', 'Energy', '10 = best']],
-pm: [['pmFog', 'Brain fog', '0 = none'], ['pmIrr', 'Irritability / agitation', '0 = none'], ['pmEnergy', 'Energy', '10 = best']]
+aft: [['aftFog', 'Brain fog', '0 = none'], ['aftIrr', 'Irritability / agitation', '0 = none'], ['aftEnergy', 'Energy', '10 = best']],
+eve: [['eveFog', 'Brain fog', '0 = none'], ['eveIrr', 'Irritability / agitation', '0 = none'], ['eveEnergy', 'Energy', '10 = best']]
 };
 const filled = x => x !== '' && x != null;
 const moodDone = (v, p) => filled(v[p + 'Mood']) && SCORES[p].every(([k]) => filled(v[k]));
 const numOnly = x => (/^\s*\d+(\.\d+)?\s*$/.test(String(x == null ? '' : x)) ? String(x).trim() : '');
-const TEXT_KEYS = ['sleepNotes', 'amNotes', 'pmNotes', 'bowel', 'exNotes', 'moodNotes', 'hunger', 'extraKet', 'glucose', 'exercise', 'gymDur', 'gymInt'];
+const TEXT_KEYS = ['sleepNotes', 'bowel', 'exNotes', 'moodNotes', 'hunger', 'extraKet', 'glucose', 'exercise', 'gymDur', 'gymInt'];
 const DAILY = [['depressive', 'Depressive symptoms', '0 = none'], ['manic', 'Manic symptoms', '0 = none'], ['dFog', 'Brain fog', '0 = none'], ['dIrr', 'Irritability / agitation', '0 = none'], ['dEnergy', 'Energy', '10 = best']];
 const DAILY_MOOD = [['dMood', 'Overall mood'], ['dHigh', 'Highest mood'], ['dLow', 'Lowest mood']];
 const GYM = [['gymFocus', 'Focus', '10 = best'], ['gymEnergy', 'Energy', '10 = best'], ['gymStrength', 'Strength', '10 = best']];
 const dailyDone = v => DAILY.concat(DAILY_MOOD).every(([k]) => filled(v[k]));
 const ITEMS = [
 { id: 'sleep', tab: 'Morning', done: v => !!v.sleepQ },
-{ id: 'weight', tab: 'Morning', done: v => !!v.weight },
 { id: 'ketones', tab: 'Morning', done: v => !!v.ketonesAM },
 { id: 'amMood', tab: 'Morning', done: v => moodDone(v, 'am') },
 { id: 'bowel', tab: 'Day', done: v => !!v.bowel },
 { id: 'firstBite', tab: 'Day', done: v => !!v.firstBite },
-{ id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
+{ id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'electro', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
 { id: 'exercise', tab: 'Day', done: v => !!v.exercise },
 { id: 'hunger', tab: 'Day', done: v => !!v.hunger },
+{ id: 'aftMood', tab: 'Day', done: v => moodDone(v, 'aft') },
 { id: 'lastBite', tab: 'Evening', done: v => !!v.lastBite },
-{ id: 'pmMood', tab: 'Evening', done: v => moodDone(v, 'pm') },
+{ id: 'eveMood', tab: 'Evening', done: v => moodDone(v, 'eve') },
 { id: 'dailyMood', tab: 'Evening', done: dailyDone }
 ];
 function defaultTab() {
@@ -319,7 +320,7 @@ sleep: ['sleepQ', 'sleepNotes'],
 exercise: ['exSel', 'gymFocus', 'gymEnergy', 'gymStrength', 'g_dur', 'g_durNote', 'g_int', 'g_intNote', 'exNotes'],
 dailyMood: ['depressive', 'manic', 'dFog', 'dIrr', 'dEnergy', 'dMood', 'dHigh', 'dLow', 'moodNotes'],
 supps: ['supSel', 'lcarn', 'mag', 'creatine'],
-amMood: ['amMood', 'amNotes', 'amFog', 'amIrr', 'amEnergy'], pmMood: ['pmMood', 'pmNotes', 'pmFog', 'pmIrr', 'pmEnergy']
+amMood: ['amMood', 'amFog', 'amIrr', 'amEnergy'], aftMood: ['aftMood', 'aftFog', 'aftIrr', 'aftEnergy'], eveMood: ['eveMood', 'eveFog', 'eveIrr', 'eveEnergy']
 };
 function openConflicts(cardId, items, conflicts, label) {
 const choice = {};
@@ -434,9 +435,9 @@ return '<div class="big">' + (isMood ? signed(v) : v) + '</div>';
 // ----- tabs
 function tabView(t) {
 const v = V();
-if (t === 'Morning') return sleepCard(v) + weightKetCards(v) + moodCard('am', 'AM mood', 'How’s the morning feeling?', v);
-if (t === 'Day') return bowelCard(v) + timeCard('firstBite', 'First bite', v) + suppCard(v) + exerciseCard(v) + hungerCard(v);
-if (t === 'Evening') return timeCard('lastBite', 'Last bite', v) + moodCard('pm', 'PM mood', 'How’s the afternoon and evening been?', v) + dailyMoodCard(v);
+if (t === 'Morning') return sleepCard(v) + ketonesCard(v) + moodCard('am', 'AM mood', 'Waking to 12 PM', v);
+if (t === 'Day') return bowelCard(v) + timeCard('firstBite', 'First bite', v) + suppCard(v) + exerciseCard(v) + hungerCard(v) + moodCard('aft', 'Afternoon mood', '12 PM to 6 PM', v);
+if (t === 'Evening') return timeCard('lastBite', 'Last bite', v) + moodCard('eve', 'Evening mood', '6 PM until bed', v) + dailyMoodCard(v);
 return moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
 moreCard('glucose', 'Glucose', 'Reading and time (mmol/L)', 'e.g. 5.1 at 17:05', 'append', v) +
 '<div class="note">Optional extras. They don’t count towards “logged today”. Readings you add go on a new line under any already saved. Hunger is now in Day.</div>';
@@ -447,23 +448,24 @@ if (!isOpen('sleep', isDone)) return loggedRow('sleep', 'Sleep', v.sleepQ + ' / 
 return '<div class="card"><div class="head"><h2>Sleep quality</h2>' + scoreDisplay('sleepQ', v.sleepQ) + '</div>' +
 sliderBlock('sleepQ', 0, 10, v.sleepQ) + textArea('sleepNotes', 'Sleep notes', 'How was the night?') + saveBtn('sleep', 'Save sleep') + '</div>';
 }
-function weightKetCards(v) {
+function ketonesCard(v) {
 const tile = (key, id, lab, unit, ph) => {
 if (v[key] && !S.open[id]) return '<div class="tile"><div class="lab">' + lab + '</div><button class="val" data-edit="' + id + '" aria-label="Edit ' + lab + '">' + esc(v[key]) + '<small> ' + unit + '</small></button><div class="ok">Logged · tap to edit</div></div>';
 return '<div class="tile"><label class="f"><span>' + lab + ' (' + unit + ')</span><input class="in num" id="i_' + key + '" data-d="' + key + '" inputmode="decimal" placeholder="' + ph + '" value="' + esc(draft(key, '')) + '"></label>' +
 '<button class="cta" style="height:44px" data-save="' + id + '"' + (S.busy[id] ? ' disabled' : '') + '>' + (S.busy[id] ? 'Saving…' : 'Save') + '</button></div>';
 };
-return '<div class="pair">' + tile('weight', 'weight', 'Weight', 'kg', '76.0') + tile('ketonesAM', 'ketones', 'Ketones', 'mmol/L', '1.5') + '</div>';
+return tile('ketonesAM', 'ketones', 'Waking ketones', 'mmol/L', '1.5');
 }
-function moodCard(p, title, ph, v) {
-const mk = p + 'Mood', nk = p + 'Notes', sc = SCORES[p];
+function moodCard(p, title, when, v) {
+const mk = p + 'Mood', sc = SCORES[p];
 if (!isOpen(mk, moodDone(v, p))) {
 const short = { Fog: 'fog', Irr: 'irritability', Energy: 'energy' };
-return loggedRow(mk, title, signed(Number(v[mk])) + sc.map(([k]) => ' · ' + short[k.slice(2)] + ' ' + v[k]).join('') + (v[nk] ? ' · note saved' : ''));
+return loggedRow(mk, title, signed(Number(v[mk])) + sc.map(([k]) => ' · ' + short[k.slice(p.length)] + ' ' + v[k]).join(''));
 }
 return '<div class="card"><div class="head"><h2>' + title + '</h2>' + scoreDisplay(mk, filled(v[mk]) ? signed(Number(v[mk])) : '', true) + '</div>' +
+'<div class="note" style="padding:0;margin-top:-8px">' + when + '</div>' +
 sliderBlock(mk, -5, 5, v[mk]) + sc.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
-textArea(nk, 'Note', ph) + saveBtn(mk, 'Save ' + title) + '</div>';
+saveBtn(mk, 'Save ' + title) + '</div>';
 }
 function scoreRow(key, label, hint, current) {
 const val = key in S.d ? S.d[key] : (filled(current) ? String(Number(current)) : '');
@@ -495,7 +497,7 @@ return '<div class="card"><h2>' + title + '</h2><div class="inline"><label class
 (S.open[key] ? '<button class="ghost" data-close="' + key + '" style="align-self:center">Cancel</button>' : '') + '</div>';
 }
 function suppCard(v) {
-const isDone = ITEMS[6].done(v);
+const isDone = ITEMS.find(i => i.id === 'supps').done(v);
 if (!isOpen('supps', isDone)) {
 const parts = SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([, n]) => n);
 if (v.lcarn) parts.push('L-carnitine ' + v.lcarn + 'mg');
@@ -578,7 +580,6 @@ if ('sleepQ' in d) items.push({ key: 'sleepQ', value: Number(d.sleepQ), mode: 'n
 if (text('sleepNotes')) items.push({ key: 'sleepNotes', value: text('sleepNotes'), mode: 'new' });
 if (!items.length) throw new Error('Move the slider or write a note');
 break;
-case 'weight': { const n = num('weight', 30, 200, 'Enter your weight in kg'); if (n == null) throw new Error('Enter your weight'); items.push({ key: 'weight', value: n, mode: 'new' }); break; }
 case 'ketones': { const n = num('ketonesAM', 0, 10, 'Ketones should be 0 to 10'); if (n == null) throw new Error('Enter your reading'); items.push({ key: 'ketonesAM', value: n, mode: 'new' }); break; }
 case 'dailyMood': {
 DAILY.concat(DAILY_MOOD).forEach(([k]) => { if (k in d && d[k] !== '') items.push({ key: k, value: Number(d[k]), mode: 'new' }); });
@@ -589,12 +590,11 @@ if (text('moodNotes')) items.push({ key: 'moodNotes', value: text('moodNotes'), 
 if (!items.length) throw new Error('Set a score or write a note');
 break;
 }
-case 'amMood': case 'pmMood': {
-const p = id.slice(0, 2), nk = p + 'Notes';
+case 'amMood': case 'aftMood': case 'eveMood': {
+const p = id.replace('Mood', '');
 if (id in d) items.push({ key: id, value: Number(d[id]), mode: 'new' });
 SCORES[p].forEach(([k]) => { if (k in d && d[k] !== '') items.push({ key: k, value: Number(d[k]), mode: 'new' }); });
-if (text(nk)) items.push({ key: nk, value: text(nk), mode: 'new' });
-if (!items.length) throw new Error('Set a score or write a note');
+if (!items.length) throw new Error('Set a score first');
 break;
 }
 case 'bowel': case 'hunger':
