@@ -191,7 +191,7 @@ button { transition: transform .08s, background-color .15s; }
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue';
-const APP_VERSION = '6';
+const APP_VERSION = '7';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -224,7 +224,7 @@ eve: [['eveFog', 'Brain fog', '0 = none'], ['eveIrr', 'Irritability / agitation'
 const filled = x => x !== '' && x != null;
 const moodDone = (v, p) => filled(v[p + 'Mood']) && SCORES[p].every(([k]) => filled(v[k]));
 const numOnly = x => (/^\s*\d+(\.\d+)?\s*$/.test(String(x == null ? '' : x)) ? String(x).trim() : '');
-const TEXT_KEYS = ['sleepNotes', 'bowel', 'exNotes', 'moodNotes', 'hunger', 'extraKet', 'glucose', 'exercise', 'gymDur', 'gymInt'];
+const TEXT_KEYS = ['sleepNotes', 'bowel', 'exNotes', 'moodNotes', 'hunger', 'extraKet', 'glucose', 'illness', 'exercise', 'gymDur', 'gymInt'];
 const DAILY = [['depressive', 'Depressive symptoms', '0 = none'], ['manic', 'Manic symptoms', '0 = none'], ['dFog', 'Brain fog', '0 = none'], ['dIrr', 'Irritability / agitation', '0 = none'], ['dEnergy', 'Energy', '10 = best']];
 const DAILY_MOOD = [['dMood', 'Overall mood'], ['dHigh', 'Highest mood'], ['dLow', 'Lowest mood']];
 const GYM = [['gymFocus', 'Focus', '10 = best'], ['gymEnergy', 'Energy', '10 = best'], ['gymStrength', 'Strength', '10 = best']];
@@ -488,7 +488,8 @@ if (t === 'Day') return cards(['bowel', 'firstBite', 'supps', 'exercise', 'aftMo
 if (t === 'Evening') return cards(['lastBite', 'eveMood', 'hunger', 'dailyMood'], v);
 return moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
 moreCard('glucose', 'Glucose', 'Reading and time (mmol/L)', 'e.g. 5.1 at 17:05', 'append', v) +
-'<div class="note">Optional extras. They don’t count towards “logged today”. Readings you add go on a new line under any already saved.</div>';
+('illness' in v ? moreCard('illness', 'Illness / symptoms', 'Only if you’re unwell. Leave blank when well', 'e.g. sore throat, cold', 'append', v) : '') +
+'<div class="note">Optional extras. They don’t count towards “logged today”. Anything you add goes on a new line under what’s already saved.</div>';
 }
 // one card per item; weight + ketones side by side when both are shown
 function cards(ids, v) {
@@ -744,7 +745,7 @@ SUPPS.filter(([k]) => /^y/i.test(prev[k] || '')).forEach(([k]) => items.push({ k
 if (!items.length) throw new Error('Nothing from yesterday to copy');
 break;
 }
-case 'extraKet': case 'glucose':
+case 'extraKet': case 'glucose': case 'illness':
 if (!text(id)) throw new Error('Write something first');
 items.push({ key: id, value: text(id), mode: 'append' });
 break;
