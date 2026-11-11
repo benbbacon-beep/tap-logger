@@ -52,6 +52,8 @@ button:disabled { opacity: .5; cursor: default; }
 .logged .txt { flex-grow: 1; min-width: 0; }
 .logged .txt b { display: block; font-size: 15px; font-weight: 600; }
 .logged .txt span { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.donerow { width: 100%; text-align: left; min-height: 62px; }
+.donerow .chev { flex: none; padding: 0 10px; font-size: 14px; font-weight: 500; color: var(--muted); }
 .ghost { height: 44px; padding: 0 14px; border: 0; background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; }
 .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .tile { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
@@ -191,7 +193,7 @@ button { transition: transform .08s, background-color .15s; }
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue';
-const APP_VERSION = '8';
+const APP_VERSION = '9';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -482,9 +484,9 @@ return '<div class="big">' + (isMood ? signed(v) : v) + '</div>';
 function tabView(t) {
 const v = V();
 if (t === 'Now') return nowView(v);
-if (t === 'Morning') return cards(['sleep', 'weight', 'ketones', 'amMood'], v);
-if (t === 'Day') return cards(['bowel', 'supps', 'exercise', 'aftMood'], v);
-if (t === 'Evening') return cards(['lastBite', 'eveMood', 'appetite', 'dailyMood'], v);
+if (t === 'Morning') return tabCards(['sleep', 'weight', 'ketones', 'amMood'], v, t);
+if (t === 'Day') return tabCards(['supps', 'exercise', 'aftMood', 'bowel'], v, t);
+if (t === 'Evening') return tabCards(['lastBite', 'eveMood', 'appetite', 'dailyMood'], v, t);
 return moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
 moreCard('glucose', 'Glucose', 'Reading and time (mmol/L)', 'e.g. 5.1 at 17:05', 'append', v) +
 ('illness' in v ? moreCard('illness', 'Illness / symptoms', 'Only if you’re unwell. Leave blank when well', 'e.g. sore throat, cold', 'append', v) : '') +
@@ -514,49 +516,68 @@ case 'dailyMood': return dailyMoodCard(v);
 }
 return '';
 }
-// ----- Now: what's due, what's missed, what's left in this part of the day
-function nowParts(v) {
-const h = new Date().getHours(), past = S.offset !== 0;
-const order = ['Morning', 'Day', 'Evening'];
-const cur = past ? null : blockNow();
-const curTab = cur ? MOOD_META[cur][2] : null, ci = cur ? order.indexOf(curTab) : 3;
-const undone = ITEMS.filter(i => !i.done(v));
-const dueMood = cur && !moodDone(v, cur) ? cur + 'Mood' : null;
-const dailyDue = !past && !dailyDone(v) && (h >= 21 || h < 3 || moodDone(v, 'eve'));
-const missed = past ? undone : undone.filter(i => order.indexOf(i.tab) < ci);
-const todo = past ? [] : undone.filter(i => i.tab === curTab && i.id !== dueMood && i.id !== 'dailyMood');
-return { cur, past, dueMood, dailyDue, missed, todo };
+// ----- when each item is normally logged, in hours (after midnight counts as 24+)
+// [from, by]: shows on Now from `from`; after `by` it moves to Catch up
+const DUE = {
+sleep: [3, 12], weight: [3, 12], ketones: [3, 12], amMood: [11.5, 14],
+supps: [12, 27], exercise: [17, 27], aftMood: [17.5, 21], bowel: [18, 27],
+lastBite: [19.5, 27], eveMood: [21, 27], appetite: [21, 27], dailyMood: [21, 27]
+};
+const NAMES = { sleep: 'Sleep', weight: 'Weight', ketones: 'Ketones', amMood: 'AM mood', bowel: 'Bowel', supps: 'Supplements', exercise: 'Exercise', aftMood: 'Afternoon mood', lastBite: 'Last bite', eveMood: 'Evening mood', appetite: 'Appetite', dailyMood: 'Overall mood' };
+const hourNow = () => { const d = new Date(); const h = d.getHours() + d.getMinutes() / 60; return h < 3 ? h + 24 : h; };
+const fmtH = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 60); return (hh % 12 || 12) + (mm ? ':' + pad(mm) : '') + (hh < 12 ? ' AM' : ' PM'); };
+const itemDone = (id, v) => ITEMS.find(i => i.id === id).done(v);
+// a tab: what's left first, then one folded "Done" row (tap to show)
+function tabCards(ids, v, tab) {
+const both = itemDone('weight', v) && itemDone('ketones', v);  // weight + ketones fold together
+const isDone = id => (id === 'weight' || id === 'ketones') ? both : itemDone(id, v);
+const show = ids.filter(id => !isDone(id)), done = ids.filter(isDone);
+let h = cards(show, v);
+if (done.length) {
+const k = 'done_' + tab, open = !!S.open[k] || done.some(id => S.open[id]);
+const pop = !open && done.indexOf(S.justDone) >= 0;
+h += '<button class="logged donerow' + (pop ? ' pop' : '') + '" data-fold="' + k + '" aria-expanded="' + open + '"><span class="tick">' + ICON.tick + '</span><span class="txt"><b>' + (show.length ? 'Done' : 'All done') + '</b><span>' + done.map(id => NAMES[id]).join(' · ') + '</span></span><span class="chev">' + (open ? 'Hide' : 'Show') + '</span></button>';
+if (open) h += cards(done, v);
 }
-function nowCount(v) { const P = nowParts(v); return (P.dueMood ? 1 : 0) + (P.dailyDue ? 1 : 0) + P.missed.length + P.todo.length; }
+return h;
+}
+// ----- Now: only what you'd actually log at this time of day
+function nowParts(v) {
+const past = S.offset !== 0, h = hourNow();
+const undone = ITEMS.filter(i => !i.done(v));
+if (past) return { past, h, due: [], missed: undone, next: null };
+const due = undone.filter(i => DUE[i.id][0] <= h && h < DUE[i.id][1]).sort((a, b) => DUE[a.id][0] - DUE[b.id][0]);
+const missed = undone.filter(i => h >= DUE[i.id][1]);
+const next = undone.filter(i => h < DUE[i.id][0]).sort((a, b) => DUE[a.id][0] - DUE[b.id][0])[0] || null;
+return { past, h, due, missed, next };
+}
+function nowCount(v) { const P = nowParts(v); return P.due.length + P.missed.length; }
 function timelineView(v, P) {
-const nodes = ['am', 'aft', 'eve', 'daily'];
-const curIdx = P.past ? -1 : (P.dailyDue && moodDone(v, P.cur) ? 3 : nodes.indexOf(P.cur));
-let done = 0;
-const cells = nodes.map((p, i) => {
-const isDaily = p === 'daily';
+const nodes = ['amMood', 'aftMood', 'eveMood', 'dailyMood'];
+let reach = 0;
+const cells = nodes.map((id, i) => {
+const isDaily = id === 'dailyMood', p = id.replace('Mood', '');
 const ok = isDaily ? dailyDone(v) : moodDone(v, p);
-const val = isDaily ? v.dMood : v[p + 'Mood'];
-const when = isDaily ? 'At bed' : MOOD_META[p][3];
-const st = ok ? 'done' : i === curIdx ? 'now' : (curIdx < 0 || i < curIdx) ? 'missed' : 'later';
-const sub = ok ? signed(Number(val)) + ' · ' + when : st === 'missed' ? (P.past ? 'Not logged' : 'Missed') : when;
+const val = isDaily ? v.dMood : v[id];
+const [from, by] = DUE[id];
+const st = ok ? 'done' : P.past || P.h >= by ? 'missed' : P.h >= from ? 'now' : 'later';
+if (st !== 'later') reach = i;
+const sub = ok ? signed(Number(val)) : st === 'missed' ? (P.past ? 'Not logged' : 'Missed') : st === 'now' ? 'Now' : 'From ' + fmtH(from);
 const name = isDaily ? 'Overall' : p === 'am' ? 'AM' : p === 'aft' ? 'Afternoon' : 'Evening';
-return '<button class="' + st + '" data-tab="' + (isDaily ? 'Evening' : MOOD_META[p][2]) + '" aria-label="' + name + ' mood, ' + (ok ? 'logged' : st) + '"><span class="dot">' + (ok ? ICON.tick : '') + '</span><b>' + name + '</b><small>' + esc(sub) + '</small></button>';
+return '<button class="' + st + '" data-tab="' + (isDaily ? 'Evening' : MOOD_META[p][2]) + '" aria-label="' + name + ' mood, ' + (ok ? 'logged' : st === 'now' ? 'due now' : esc(sub)) + '"><span class="dot">' + (ok ? ICON.tick : '') + '</span><b>' + name + '</b><small>' + esc(sub) + '</small></button>';
 });
-const reach = curIdx < 0 ? 0 : curIdx;
 return '<div class="tl"><span class="rail"></span><span class="fill" style="width:' + (reach / 3 * 75) + '%"></span>' + cells.join('') + '</div>';
 }
 function nowView(v) {
 const P = nowParts(v);
 const sec = s => '<div class="sec">' + s + '</div>';
 let h = timelineView(v, P);
-const due = [P.dueMood, P.dailyDue ? 'dailyMood' : null].filter(Boolean);
-if (due.length) h += sec('Due now') + cards(due, v);
-if (P.missed.length) h += sec(P.past ? 'Not logged' : 'Missed earlier') + cards(P.missed.map(i => i.id), v);
-if (P.todo.length) h += sec('Still to do') + cards(P.todo.map(i => i.id), v);
-if (!due.length && !P.missed.length && !P.todo.length) {
-const next = P.past || dailyDone(v) ? 'Everything for this day is logged.' : P.cur === 'am' ? 'Next: Afternoon mood from 12 PM.' : P.cur === 'aft' ? 'Next: Evening mood from 6 PM.' : 'Next: Overall mood at bed.';
+if (P.due.length) h += sec('Due now') + cards(P.due.map(i => i.id), v);
+if (P.missed.length) h += sec(P.past ? 'Not logged' : 'Catch up') + cards(P.missed.map(i => i.id), v);
+if (!P.due.length && !P.missed.length) {
+const next = P.next ? 'Next: ' + NAMES[P.next.id] + ' from ' + fmtH(DUE[P.next.id][0]) + '.' : 'Everything for this day is logged.';
 h += '<div class="card caught"><div class="tick">' + ICON.tick + '</div><h2>All caught up</h2><div class="note">' + next + '</div></div>';
-}
+} else if (P.next && !P.due.length) h += '<div class="note">Next: ' + NAMES[P.next.id] + ' from ' + fmtH(DUE[P.next.id][0]) + '.</div>';
 return h;
 }
 function sleepCard(v) {
@@ -845,6 +866,7 @@ if (ds.suppedit) { S.open.suppEdit = true; render(); return; }
 if (ds.flush) { flush(true); return; }
 if (ds.update) { (window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : Promise.resolve()).then(() => location.reload()); return; }
 if (ds.tab) { S.tab = ds.tab; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+if (ds.fold) { const k = ds.fold, open = !S.open[k]; S.open[k] = open; if (!open) Object.keys(S.open).forEach(x => { if (x !== k && ITEMS.some(i => i.id === x)) S.open[x] = false; }); render(); return; }
 if (ds.edit) { S.open[ds.edit] = true; render(); return; }
 if (ds.close) { S.open[ds.close] = false; (CLEAR[ds.close] || [ds.close]).forEach(k => delete S.d[k]); render(); return; }
 if (ds.nudge) {
