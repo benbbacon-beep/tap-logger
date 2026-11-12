@@ -14,7 +14,7 @@
 <style>
 :root {
 --bg: #0E0F12; --card: #17191E; --line: #2A2D35; --raise: #23262D; --sel: #2A2D35;
---text: #F2F3F5; --muted: #9AA0AA; --faint: #5B616B; --accent: #00E0FF; --accent-ink: #0E0F12; --tick-bg: #083344;
+--text: #F2F3F5; --muted: #9AA0AA; --faint: #858C97; --accent: #00E0FF; --accent-ink: #0E0F12; --tick-bg: #083344;
 --bad: #F87171;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,23 +28,26 @@ button:disabled { opacity: .5; cursor: default; }
 .round { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; padding: 0; }
 .round svg { width: 18px; height: 18px; }
 .date { text-align: center; }
-.date small { display: block; font-size: 13px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.date small { display: block; font-size: 13px; color: var(--muted); }
 .date strong { font-size: 22px; font-weight: 700; }
-.progress { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
-.progress .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
-.progress .row b { color: var(--text); font-weight: 600; }
+.progress { margin-top: 14px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+.progress b { font-weight: 500; }
+.segs { flex-grow: 1; display: flex; gap: 10px; }
+.segs i { flex: 1; display: flex; gap: 3px; }
+.segs u { flex: 1; height: 6px; border-radius: 3px; background: var(--raise); transition: background-color .3s; }
+.segs u.f { background: var(--accent); }
 .bar { height: 8px; border-radius: 4px; background: var(--raise); overflow: hidden; }
 .bar i { display: block; height: 8px; border-radius: 4px; background: var(--accent); transition: width .3s; }
 .tabs { margin: 16px 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px; position: sticky; top: calc(env(safe-area-inset-top) + 6px); z-index: 5; box-shadow: 0 8px 16px var(--bg); }
 .tabs button { height: 50px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 500; font-size: 13px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
-.tabs button span { font-size: 11px; }
+.tabs button span { font-size: 12px; }
 .tabs button.on { background: var(--sel); color: var(--text); font-weight: 600; }
 .tabs button.on span, .tabs button span.done { color: var(--accent); }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-.card h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.card h2 { margin: 0; font-size: 18px; font-weight: 600; }
 .card .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.big { font-size: 28px; font-weight: 700; color: var(--accent); }
+.big { font-size: 30px; font-weight: 700; color: var(--accent); line-height: 1; min-height: 30px; }
 .big.empty { color: var(--faint); }
 .logged { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 12px; }
 .tick { width: 36px; height: 36px; flex: none; border-radius: 18px; background: var(--tick-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; }
@@ -61,7 +64,7 @@ button:disabled { opacity: .5; cursor: default; }
 .tile .val { font-size: 28px; font-weight: 700; }
 .tile .val small { font-size: 14px; color: var(--muted); font-weight: 500; }
 .tile .ok { font-size: 12px; color: var(--accent); }
-.tile button.val { background: none; border: 0; padding: 0; text-align: left; color: var(--text); }
+.tile button.val { background: none; border: 0; padding: 0; min-height: 44px; text-align: left; color: var(--text); }
 label.f { display: flex; flex-direction: column; gap: 6px; }
 label.f > span { font-size: 13px; color: var(--muted); }
 textarea, input.in { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 12px; font-size: 16px; }
@@ -83,9 +86,10 @@ input[type=range] { -webkit-appearance: none; appearance: none; flex-grow: 1; he
 input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--accent) 0 var(--fill-a, 0%), var(--raise) var(--fill-a, 0%) 100%); }
 input[type=range].mid::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--raise) 0 var(--lo, 50%), var(--accent) var(--lo, 50%) var(--hi, 50%), var(--raise) var(--hi, 50%) 100%); }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 15px; background: var(--text); margin-top: -11px; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
-input[type=range].untouched::-webkit-slider-thumb { background: var(--faint); }
+input[type=range].untouched::-webkit-slider-runnable-track { background: var(--raise); }
+input[type=range].untouched::-webkit-slider-thumb { background: #5B616B; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chips button { height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--raise); font-size: 14px; font-weight: 500; }
+.chips button { height: 44px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--raise); font-size: 14px; font-weight: 500; }
 .chips button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 details { border: 1px solid var(--line); border-radius: 14px; background: var(--bg); padding: 0 14px; }
 details[open] { padding-bottom: 14px; }
@@ -102,7 +106,7 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 .seg button.on { background: var(--sel); color: var(--text); font-weight: 600; }
 .lab12 { font-size: 12px; color: var(--muted); }
 .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.checks button { height: 52px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 12px; padding: 0 12px; text-align: left; }
+.checks button { height: 52px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; padding: 0 10px; text-align: left; }
 .box { width: 26px; height: 26px; flex: none; border-radius: 8px; border: 2px solid #3A3F49; display: flex; align-items: center; justify-content: center; }
 .checks button.on .box { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .box svg { width: 16px; height: 16px; display: none; }
@@ -137,17 +141,17 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 .grid11 button:active { transform: none; background: var(--raise); }
 .grid11 button.on:active { background: var(--accent); }
 .grid11 button.half { font-size: 13px; letter-spacing: -0.5px; }
-.slbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); margin-bottom: -6px; }
+.slbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; min-height: 22px; color: var(--muted); margin-bottom: -6px; }
 .slbl b { color: var(--text); font-size: 17px; font-weight: 700; }
 .slbl b.empty { color: var(--faint); }
-.sub { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+.sub { font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 4px; }
 .srow { display: flex; flex-direction: column; gap: 6px; }
-.srow .lbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); }
-.srow .lbl b { color: var(--text); font-size: 15px; font-weight: 600; }
+.srow .lbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: var(--muted); min-height: 20px; }
+.srow .lbl b { color: var(--text); font-size: 16px; font-weight: 600; }
 .srow .lbl b.empty { color: var(--faint); }
 .upd { width: 100%; height: 48px; margin-bottom: 12px; border: 1px solid var(--accent); border-radius: 14px; background: var(--tick-bg); color: var(--accent); font-size: 15px; font-weight: 600; }
 .pending { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 14px; border: 1px dashed var(--line); border-radius: 12px; font-size: 13px; color: var(--muted); }
-.sec { margin: 10px 2px -2px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.sec { margin: 8px 2px -2px; font-size: 14px; font-weight: 600; color: var(--muted); }
 .tl { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 4px 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .tl .rail, .tl .fill { position: absolute; left: 12.5%; top: 27px; height: 2px; background: var(--line); }
 .tl .rail { right: 12.5%; }
@@ -161,12 +165,12 @@ summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-l
 .tl .missed .dot { border-style: dashed; border-color: var(--muted); }
 .tl b { font-size: 13px; font-weight: 600; }
 .tl .later b, .tl .missed b { color: var(--muted); }
-.tl small { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.tl small { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .tl .missed small { color: #FBBF24; }
 .autobar { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
 .autobar .bar { flex-grow: 1; height: 4px; }
 .autobar .bar i { height: 4px; }
-.autobar .ghost { height: 36px; padding: 0 4px; color: var(--muted); text-decoration: underline; }
+.autobar .ghost { height: 44px; padding: 0 4px; color: var(--muted); text-decoration: underline; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tags span { padding: 7px 10px; border-radius: 16px; background: var(--raise); border: 1px solid var(--line); font-size: 13px; }
 .two { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
@@ -182,7 +186,9 @@ button:not(:disabled):active { transform: scale(.97); }
 button { transition: transform .08s, background-color .15s; }
 .big, .srow .lbl b, .slbl b, .tile .val, .progress b, .tl small { font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .sk, .logged.pop { animation: none; } button:active { transform: none; } }
-.pending button { height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--raise); font-size: 13px; font-weight: 600; }
+.tile .cta { height: 46px; margin-top: auto; }
+.pending span { padding: 6px 0; }
+.pending button { flex: none; height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--raise); font-size: 13px; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -192,8 +198,8 @@ button { transition: transform .08s, background-color .15s; }
 <script>
 'use strict';
 // ---------------------------------------------------------------- setup
-const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue';
-const APP_VERSION = '9';
+const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue', LS_SHAPE = 'tl_shape', LS_D = 'tl_draft';
+const APP_VERSION = '10';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -213,23 +219,23 @@ history.replaceState(null, '', location.pathname + location.search);
 }
 // ---------------------------------------------------------------- state
 const S = {
-cfg: null, offset: 0, data: null, loading: false, stale: false,
+cfg: null, offset: 0, data: null, loading: false, stale: false, seq: 0, err: null, netWait: false, sending: null,
 tab: null, open: {}, busy: {}, d: {}  // d = drafts the user has typed but not saved
 };
 const TABS = ['Now', 'Morning', 'Day', 'Evening', 'More'];
 const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3'], ['electro', 'Electrolytes']];
 const SCORES = {
-am: [['amFog', 'Brain fog', '0 = none'], ['amIrr', 'Irritability / agitation', '0 = none'], ['amEnergy', 'Energy', '10 = best']],
-aft: [['aftFog', 'Brain fog', '0 = none'], ['aftIrr', 'Irritability / agitation', '0 = none'], ['aftEnergy', 'Energy', '10 = best']],
-eve: [['eveFog', 'Brain fog', '0 = none'], ['eveIrr', 'Irritability / agitation', '0 = none'], ['eveEnergy', 'Energy', '10 = best']]
+am: [['amFog', 'Brain fog', '0 is none'], ['amIrr', 'Irritability / agitation', '0 is none'], ['amEnergy', 'Energy', '10 is best']],
+aft: [['aftFog', 'Brain fog', '0 is none'], ['aftIrr', 'Irritability / agitation', '0 is none'], ['aftEnergy', 'Energy', '10 is best']],
+eve: [['eveFog', 'Brain fog', '0 is none'], ['eveIrr', 'Irritability / agitation', '0 is none'], ['eveEnergy', 'Energy', '10 is best']]
 };
 const filled = x => x !== '' && x != null;
 const moodDone = (v, p) => filled(v[p + 'Mood']) && SCORES[p].every(([k]) => filled(v[k]));
 const numOnly = x => (/^\s*\d+(\.\d+)?\s*$/.test(String(x == null ? '' : x)) ? String(x).trim() : '');
 const TEXT_KEYS = ['sleepNotes', 'bowel', 'exNotes', 'moodNotes', 'appetite', 'extraKet', 'glucose', 'illness', 'exercise', 'gymDur', 'gymInt'];
-const DAILY = [['depressive', 'Depressive symptoms', '0 = none'], ['manic', 'Manic symptoms', '0 = none'], ['dFog', 'Brain fog', '0 = none'], ['dIrr', 'Irritability / agitation', '0 = none'], ['dEnergy', 'Energy', '10 = best']];
+const DAILY = [['depressive', 'Depressive symptoms', '0 is none'], ['manic', 'Manic symptoms', '0 is none'], ['dFog', 'Brain fog', '0 is none'], ['dIrr', 'Irritability / agitation', '0 is none'], ['dEnergy', 'Energy', '10 is best']];
 const DAILY_MOOD = [['dMood', 'Overall mood'], ['dHigh', 'Highest mood'], ['dLow', 'Lowest mood']];
-const GYM = [['gymFocus', 'Focus', '10 = best'], ['gymEnergy', 'Energy', '10 = best'], ['gymStrength', 'Strength', '10 = best']];
+const GYM = [['gymFocus', 'Focus', '10 is best'], ['gymEnergy', 'Energy', '10 is best'], ['gymStrength', 'Strength', '10 is best']];
 const dailyDone = v => DAILY.concat(DAILY_MOOD).every(([k]) => filled(v[k]));
 const ITEMS = [
 { id: 'sleep', tab: 'Morning', done: v => !!v.sleepQ },
@@ -249,12 +255,11 @@ function defaultTab() { return 'Now'; }
 // which mood block is it now (before 3am still counts as yesterday's evening)
 const blockNow = () => { const h = new Date().getHours(); return h < 3 ? 'eve' : h < 12 ? 'am' : h < 18 ? 'aft' : 'eve'; };
 const MOOD_META = { am: ['AM mood', 'Waking to 12 PM', 'Morning', 'Waking–12'], aft: ['Afternoon mood', '12 PM to 6 PM', 'Day', '12–6 PM'], eve: ['Evening mood', '6 PM until bed', 'Evening', '6 PM–bed'] };
+const DAYN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MONN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function expectedLabel(offset) {
-const now = new Date();
-const d = new Date(now.getTime() + ((now.getHours() < 3 ? -1 : 0) + offset) * 864e5);
-const p = {};
-new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).formatToParts(d).forEach(x => p[x.type] = x.value);
-return p.weekday + ' ' + p.day + ' ' + p.month;
+const d = new Date(), early = d.getHours() < 3 ? 1 : 0;
+d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - early + offset);
+return DAYN[d.getDay()] + ' ' + d.getDate() + ' ' + MONN[d.getMonth()];
 }
 // ---------------------------------------------------------------- helpers
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -262,15 +267,26 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const pad = n => String(n).padStart(2, '0');
 const nowHHMM = () => { const d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
 const signed = n => (n > 0 ? '+' : '') + n;
-function getQ() { try { return JSON.parse(localStorage.getItem(LS_Q) || '[]'); } catch (e) { return []; } }
-function setQ(q) { try { localStorage.setItem(LS_Q, JSON.stringify(q)); } catch (e) {} }
+// the on-phone queue: every save goes here first, then gets sent. held = needs a decision from you
+let QMEM = null;
+function getQ() { if (!QMEM) { try { QMEM = JSON.parse(localStorage.getItem(LS_Q) || '[]') || []; } catch (e) { QMEM = []; } } return QMEM; }
+function setQ(q) { QMEM = q; try { localStorage.setItem(LS_Q, JSON.stringify(q)); } catch (e) {} }
+const eqv = (a, b) => { const x = String(a == null ? '' : a).trim().toLowerCase(), y = String(b == null ? '' : b).trim().toLowerCase(); return x === y || (x !== '' && y !== '' && isFinite(Number(x)) && Number(x) === Number(y)); };
+// what a save does to a day's values (same rules as the sheet script)
+function applyItems(base, items) {
+items.forEach(it => {
+const cur = base[it.key] == null ? '' : String(base[it.key]);
+if (it.mode === 'clear') { if (cur !== '' && eqv(cur, it.expect)) base[it.key] = ''; return; }
+if (it.mode === 'append' && cur) {
+if (it.sep === ', ') { const have = cur.split(',').map(x => x.trim()).filter(Boolean); String(it.value).split(',').map(x => x.trim()).forEach(x => { if (x && have.indexOf(x) < 0) have.push(x); }); base[it.key] = have.join(', '); }
+else base[it.key] = cur + (it.sep || '\n') + it.value;
+} else base[it.key] = String(it.value);
+});
+}
 const V = () => {
 const base = Object.assign({}, (S.data && S.data.values) || {});
 const lab = S.data && S.data.label;
-getQ().filter(j => j.label === lab).forEach(j => j.items.forEach(it => {
-const cur = base[it.key] || '';
-base[it.key] = it.mode === 'append' && cur ? cur + (it.sep || '\n') + it.value : String(it.value);
-}));
+getQ().forEach(j => { if (j.label === lab && !j.held) applyItems(base, j.items); });
 return base;
 };
 const draft = (k, dflt) => (k in S.d ? S.d[k] : dflt);
@@ -296,44 +312,63 @@ if (j.error) throw new Error(j.error);
 return j;
 }
 // ---------------------------------------------------------------- loading
-function cacheKey() { return LS_CACHE + ':' + expectedLabel(S.offset); }
-async function load(quiet) {
-S.loading = true;
-if (!S.data) {
-try { const c = JSON.parse(localStorage.getItem(cacheKey()) || 'null'); if (c) { S.data = c; S.stale = true; } } catch (e) {}
-} else S.stale = true;
-render();
-try {
-const data = await api('state');
-S.data = data; S.stale = false;
-try { localStorage.setItem(cacheKey(), JSON.stringify(data)); } catch (e) {}
-} catch (e) {
-if (!quiet) toast(e.net ? 'No connection. Showing the last saved copy.' : e.message, false);
+function cacheKey(label) { return LS_CACHE + ':' + (label || expectedLabel(S.offset)); }
+// unsaved typing is kept on the phone per day, so closing the app doesn't lose it
+function readDrafts(label) { try { return JSON.parse(localStorage.getItem(LS_D + ':' + label) || '{}') || {}; } catch (e) { return {}; } }
+function keepDrafts() {
+if (!S.data) return;
+try { const k = LS_D + ':' + S.data.label, j = JSON.stringify(S.d); if (j === '{}') localStorage.removeItem(k); else localStorage.setItem(k, j); } catch (e) {}
 }
-S.loading = false;
+// no signal and nothing cached for this day: an empty day you can still log into (it's sent later, and the sheet still asks before overwriting)
+function blankDay() {
+try {
+const sh = JSON.parse(localStorage.getItem(LS_SHAPE) || 'null');
+if (!sh || !sh.keys) return null;
+const values = {}, prev = {};
+sh.keys.forEach(k => { values[k] = ''; });
+try { const y = JSON.parse(localStorage.getItem(cacheKey(expectedLabel(S.offset - 1))) || 'null'); if (y) ['lcarn', 'mag', 'creatine', 'multivit', 'vitD', 'omega', 'electro'].forEach(k => { prev[k] = y.values[k] || ''; }); } catch (e) {}
+return { label: expectedLabel(S.offset), values, prev, exOptions: sh.exOptions || [], blank: true };
+} catch (e) { return null; }
+}
+async function load(quiet) {
+const seq = ++S.seq, want = expectedLabel(S.offset);
+S.loading = !quiet;
+const cold = !S.data;
+if (cold) {
+S.d = readDrafts(want);
+try { const c = JSON.parse(localStorage.getItem(cacheKey(want)) || 'null'); if (c) { S.data = c; S.stale = true; } } catch (e) {}
+}
+if (cold || !quiet) render();  // a quiet background check leaves the screen alone
+try {
+const data = await api('state', { label: want });
+if (seq !== S.seq) return;  // an older answer (you've moved to another day, or saved since): ignore it
+const same = !!S.data && !S.err && JSON.stringify(S.data) === JSON.stringify(data);
+S.data = data; S.err = null; S.loading = false; S.stale = false;
+try { localStorage.setItem(cacheKey(data.label), JSON.stringify(data)); localStorage.setItem(LS_SHAPE, JSON.stringify({ keys: Object.keys(data.values), exOptions: data.exOptions })); } catch (e) {}
+const st = $('.stack');
+if (same && st) { st.classList.remove('stale'); const u = $('#upd-txt'); if (u) u.textContent = ''; }  // nothing changed: leave the screen alone
+else render();
+} catch (e) {
+if (seq !== S.seq) return;
+S.loading = false; S.stale = false;
+S.err = { net: !!e.net, msg: e.message };
+if (!S.data && e.net) S.data = blankDay();
 render();
+}
 }
 // ---------------------------------------------------------------- saving
-async function send(cardId, items, label, quiet) {
-if (S.busy[cardId]) return { status: 'busy' };
-let out = { status: 'error' };
+// A save shows as logged straight away and is sent in the background. Returns the job id.
+function submit(cardId, items, label, quiet) {
 label = label || (S.data ? S.data.label : expectedLabel(S.offset));
-S.busy[cardId] = true; render();
-try {
-const r = await api('save', { items, label });
-if (r.ok) { clearCard(cardId, items); if (!quiet) toast('Saved', true); load(true); out = { status: 'ok' }; }
-else { openConflicts(cardId, items, r.conflicts, label); out = { status: 'conflict' }; }
-} catch (e) {
-if (e.net) {
+const v = S.data && S.data.label === label ? V() : {};
+// editing a number the app was showing you: tell the sheet what it showed, so it can replace without asking if that's still there
+items.forEach(it => { if (it.mode === 'new' && TEXT_KEYS.indexOf(it.key) < 0 && filled(v[it.key]) && !eqv(v[it.key], it.value)) it.expect = String(v[it.key]); });
 const id = Date.now() + '-' + Math.random().toString(36).slice(2);
-const q = getQ(); q.push({ id, cardId, items, label }); setQ(q);
+const q = getQ().slice(); q.push({ id, cardId, items, label }); setQ(q);
 clearCard(cardId, items);
-if (!quiet) toast('No signal. Kept on the phone, it’ll send when you’re back online', true);
-out = { status: 'queued', id };
-} else toast(e.message, false);
-}
-S.busy[cardId] = false; render();
-return out;
+if (!quiet) toast('Saved', true);
+render(); flush();
+return id;
 }
 function clearCard(cardId, items) {
 items.forEach(it => { delete S.d[it.key]; });
@@ -341,26 +376,34 @@ items.forEach(it => { delete S.d[it.key]; });
 S.open[cardId] = false;
 S.justDone = cardId; setTimeout(() => { if (S.justDone === cardId) S.justDone = null; }, 500);
 }
+const sheetOpen = () => $('#sheet').classList.contains('show');
+const hold = (id, err) => setQ(getQ().map(j => (j.id === id ? Object.assign({}, j, { held: true, err: err || null }) : j)));
 let flushing = false;
 async function flush(manual) {
-if (flushing || !S.cfg || !getQ().length) { if (manual) load(); return; }
-flushing = true; let sent = 0, waiting = false;
-for (const job of getQ()) {
+if (flushing || !S.cfg) return;
+flushing = true; let sent = 0, failed = false, refused = false; const tried = {};
+for (;;) {
+const job = getQ().find(j => !j.held && !tried[j.id]);
+if (!job) break;
+tried[job.id] = 1; S.sending = job.id;
 try {
 const r = await api('save', { items: job.items, label: job.label });
-setQ(getQ().filter(x => x.id !== job.id));
-if (r.ok) sent++;
-else { openConflicts(job.cardId, job.items, r.conflicts, job.label); break; }
+if (r.ok) {
+setQ(getQ().filter(x => x.id !== job.id)); sent++; S.seq++;
+if (S.data && S.data.label === job.label) applyItems(S.data.values, job.items);
+try { const k = cacheKey(job.label), c = JSON.parse(localStorage.getItem(k) || 'null'); if (c) { applyItems(c.values, job.items); localStorage.setItem(k, JSON.stringify(c)); } } catch (e) {}
+} else { refused = true; hold(job.id); if (!sheetOpen()) openConflicts(job, r.conflicts); }
 } catch (e) {
-if (e.net) { waiting = true; break; }
-setQ(getQ().filter(x => x.id !== job.id));
-toast('A waiting save failed: ' + e.message, false);
+if (e.net) { failed = true; break; }
+refused = true; hold(job.id, e.message); if (!sheetOpen()) openFailed(job, e.message);
 }
 }
-flushing = false;
-if (sent) toast(sent === 1 ? 'Waiting save sent' : sent + ' waiting saves sent', true);
-else if (waiting && manual) toast('Still no signal', false);
-load(true);
+S.sending = null; flushing = false;
+const was = S.netWait; S.netWait = failed;
+if (failed) { if (manual) toast('Still no signal', false); else if (!was) toast('No signal. Kept on the phone, it’ll send when you’re back online', true); }
+else if (was && sent) toast(sent === 1 ? 'Waiting save sent' : sent + ' waiting saves sent', true);
+if (failed !== was || getQ().some(j => j.held)) render();
+if (sent || refused) load(true);
 }
 const CLEAR = {
 sleep: ['sleepQ', 'sleepNotes'],
@@ -369,48 +412,74 @@ dailyMood: ['depressive', 'manic', 'dFog', 'dIrr', 'dEnergy', 'dMood', 'dHigh', 
 supps: ['supSel', 'lcarn', 'mag', 'creatine'], appetite: ['appetite', 'appetiteScore'],
 amMood: ['amMood', 'amFog', 'amIrr', 'amEnergy'], aftMood: ['aftMood', 'aftFog', 'aftIrr', 'aftEnergy'], eveMood: ['eveMood', 'eveFog', 'eveIrr', 'eveEnergy']
 };
-function openConflicts(cardId, items, conflicts, label) {
+function openConflicts(job, conflicts) {
 const choice = {};
 const panel = $('#sheet-panel');
-panel.innerHTML = '<div class="grab"></div><h2 id="sheet-title" style="margin:0;font-size:20px">Already filled in</h2>' +
-'<div class="note" style="padding:0">Nothing has been saved yet. Choose what to do with each one.</div>' +
-conflicts.map((c, i) => {
+const otherDay = S.data && S.data.label !== job.label;
+panel.innerHTML = '<div class="grab"></div><h2 id="sheet-title" style="margin:0;font-size:20px">Already filled in' + (otherDay ? ' · ' + esc(job.label) : '') + '</h2>' +
+'<div class="note" style="padding:0">Nothing has been changed in the sheet. Choose what to do with each one.</div>' +
+conflicts.map(c => {
 choice[c.key] = 'keep';
 const canAdd = TEXT_KEYS.indexOf(c.key) >= 0;
 return '<div class="conf"><b>' + esc(c.header) + '</b><div class="now">Now: ' + esc(c.current) + '</div><div class="new">New: ' + esc(c.value) + '</div>' +
 '<div class="seg" data-k="' + esc(c.key) + '" style="grid-template-columns:repeat(' + (canAdd ? 3 : 2) + ',minmax(0,1fr))">' +
 '<button class="on" data-v="keep">Keep</button><button data-v="replace">Replace</button>' + (canAdd ? '<button data-v="append">Add to end</button>' : '') + '</div></div>';
 }).join('') +
-'<button class="cta" id="conf-go">Save my choices</button><button class="cta alt" id="conf-x">Cancel</button>';
+'<button class="cta" id="conf-go">Save my choices</button><button class="cta alt" id="conf-x">Decide later</button>';
 panel.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
 const b = e.target.closest('button'); if (!b) return;
 seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
 choice[seg.dataset.k] = b.dataset.v;
 }));
-$('#conf-x').onclick = closeSheet;
+$('#conf-x').onclick = () => { closeSheet(); render(); };  // stays on the phone until you decide
 $('#conf-go').onclick = () => {
 const next = [];
-items.forEach(it => {
+job.items.forEach(it => {
 const ch = choice[it.key];
 if (ch === undefined) next.push(it);
 else if (ch !== 'keep') next.push(Object.assign({}, it, { mode: ch }));
 });
+setQ(getQ().filter(x => x.id !== job.id));
 closeSheet();
-if (next.length) send(cardId, next, label); else { toast('Nothing changed', true); }
+if (next.length) submit(job.cardId, next, job.label); else { toast('Nothing changed', true); render(); }
 };
 $('#sheet').classList.add('show');
 }
+// a save the sheet refused for another reason: keep it until you say
+function openFailed(job, msg) {
+const panel = $('#sheet-panel');
+panel.innerHTML = '<div class="grab"></div><h2 id="sheet-title" style="margin:0;font-size:20px">Couldn’t save · ' + esc(job.label) + '</h2>' +
+'<div class="note" style="padding:0">' + esc(msg) + '</div>' +
+'<div class="saved">' + job.items.map(it => esc(it.key + ': ' + (it.mode === 'clear' ? '(undo)' : it.value))).join('\n') + '</div>' +
+'<button class="cta" id="fail-go">Try again</button><button class="cta alt" id="fail-x">Decide later</button><button class="ghost" id="fail-del" style="align-self:center">Discard it</button>';
+$('#fail-x').onclick = () => { closeSheet(); render(); };
+$('#fail-go').onclick = () => { closeSheet(); review(job.id); };
+$('#fail-del').onclick = () => { setQ(getQ().filter(x => x.id !== job.id)); closeSheet(); render(); };
+$('#sheet').classList.add('show');
+}
+function review(id) {
+const j = getQ().find(x => x.held && (!id || x.id === id)); if (!j) return;
+setQ(getQ().map(x => (x.id === j.id ? Object.assign({}, x, { held: false, err: null }) : x)));
+flush(true);
+}
 function closeSheet() { $('#sheet').classList.remove('show'); }
-$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') { closeSheet(); render(); } });
 // ---------------------------------------------------------------- render
 function render() {
 const app = $('#app');
 if (!S.cfg) { app.innerHTML = setupView(); bindSetup(); return; }
 const active = document.activeElement && document.activeElement.id;
 const caret = active && document.activeElement.selectionStart;
-app.innerHTML = headerView() + (S.data ? tabsView() + '<div class="stack' + (S.stale ? ' stale' : '') + '">' + tabView(S.tab) + '</div>' : '<div class="sk t"></div><div class="stack"><div class="sk"></div><div class="sk"></div><div class="sk" style="height:200px"></div></div>') + footView();
+app.innerHTML = headerView() + (S.data ? tabsView() + '<div class="stack' + (S.stale ? ' stale' : '') + '">' + tabView(S.tab) + '</div>' : S.err ? errorView() : '<div class="sk t"></div><div class="stack"><div class="sk"></div><div class="sk"></div><div class="sk" style="height:200px"></div></div>') + footView();
+keepDrafts(); nowSig = sig();
 bind();
 if (active) { const el = document.getElementById(active); if (el) { el.focus(); try { if (caret != null) el.setSelectionRange(caret, caret); } catch (e) {} } }
+}
+function errorView() {
+const noRow = /^No row for/.test(S.err.msg);
+return '<div class="card caught" style="margin-top:16px"><h2>' + (S.err.net ? 'No signal' : 'Can’t open this day') + '</h2><div class="note">' +
+(S.err.net ? 'This phone hasn’t been online in the app yet, so there’s nothing to show.' : noRow ? 'Your Daily Log has no row for ' + esc(expectedLabel(S.offset)) + ' yet. Add that date in column A, then try again.' : esc(S.err.msg)) +
+'</div><button class="cta" data-retry="1">Try again</button></div>';
 }
 function setupView() {
 return '<div class="setup"><h1>Tap Logger</h1><p>Open the setup link Claude gave you on this phone, or paste the two values below.</p>' +
@@ -430,12 +499,15 @@ const lab = S.data ? S.data.label : expectedLabel(S.offset);
 const rel = S.offset === 0 ? 'Today' : S.offset === -1 ? 'Yesterday' : (-S.offset) + ' days ago';
 const vals = V();
 const counted = ITEMS.filter(i => i.done(vals)).length;
-const q = getQ().length;
+const q = getQ(), held = q.filter(j => j.held).length, wait = q.length - held;
+const bar = (txt, btn, attr) => '<div class="pending"><span>' + txt + '</span><button ' + attr + '="1">' + btn + '</button></div>';
 return (S.update ? '<button class="upd" data-update="1">Update ready · tap to refresh</button>' : '') + '<div class="top"><button class="round" id="prev" aria-label="Previous day"' + (S.offset <= -6 ? ' disabled' : '') + '>' + ICON.left + '</button>' +
-'<div class="date"><small>' + rel + (S.offset === 0 ? ' · ' + MOOD_META[blockNow()][0].replace(' mood', '') : '') + (S.loading ? ' · updating' : '') + '</small><strong>' + esc(lab) + '</strong></div>' +
+'<div class="date"><small>' + rel + '<span id="upd-txt">' + (S.loading ? ' · updating' : '') + '</span></small><strong>' + esc(lab) + '</strong></div>' +
 '<button class="round" id="next" aria-label="Next day"' + (S.offset >= 0 ? ' disabled' : '') + '>' + ICON.right + '</button></div>' +
-(q ? '<div class="pending"><span>' + q + (q === 1 ? ' save' : ' saves') + ' waiting for signal</span><button data-flush="1">Send now</button></div>' : '') +
-(S.data ? '<div class="progress"><div class="row"><span>Logged ' + (S.offset === 0 ? 'today' : 'that day') + '</span><b>' + counted + ' of ' + ITEMS.length + '</b></div><div class="bar"><i style="width:' + Math.round(counted / ITEMS.length * 100) + '%"></i></div></div>' : '');
+(S.err && S.data ? bar(S.err.net ? (S.data.blank ? 'No signal. You can still log, and it’ll send when you’re back online.' : 'No signal. Showing the copy on this phone.') : esc(S.err.msg), 'Retry', 'data-retry') : '') +
+(S.netWait && wait ? bar(wait + (wait === 1 ? ' save' : ' saves') + ' waiting for signal', 'Send now', 'data-flush') : '') +
+(held ? bar(held + (held === 1 ? ' save needs' : ' saves need') + ' your say', 'Review', 'data-review') : '') +
+(S.data ? '<div class="progress"><div class="segs" role="img" aria-label="' + counted + ' of ' + ITEMS.length + ' logged">' + ['Morning', 'Day', 'Evening'].map(t => '<i>' + ITEMS.filter(i => i.tab === t).map(i => '<u class="' + (i.done(vals) ? 'f' : '') + '"></u>').join('') + '</i>').join('') + '</div><b>' + counted + ' of ' + ITEMS.length + '</b></div>' : '');
 }
 function tabsView() {
 const vals = V();
@@ -443,7 +515,7 @@ return '<nav class="tabs" aria-label="Part of the day">' + TABS.map(t => {
 const its = ITEMS.filter(i => i.tab === t);
 const n = its.filter(i => i.done(vals)).length;
 const due = t === 'Now' ? nowCount(vals) : 0;
-const sub = t === 'Now' ? (due ? due + ' due' : 'Done') : t === 'More' ? 'Extras' : n === its.length ? 'Done' : n + ' / ' + its.length;
+const sub = t === 'Now' ? (due ? due + ' due' : 'Done') : t === 'More' ? 'Extras' : n === its.length ? 'Done' : n + ' of ' + its.length;
 return '<button data-tab="' + t + '" class="' + (S.tab === t ? 'on' : '') + '" aria-pressed="' + (S.tab === t) + '">' + t + '<span class="' + (sub === 'Done' ? 'done' : '') + '">' + sub + '</span></button>';
 }).join('') + '</nav>';
 }
@@ -457,26 +529,26 @@ return '<div class="logged' + (S.justDone === id ? ' pop' : '') + '"><div class=
 }
 function isOpen(id, isDone) { return !isDone || S.open[id]; }
 function saveBtn(id, label, alt) {
-return '<button class="cta' + (alt ? ' alt' : '') + '" data-save="' + id + '"' + (S.busy[id] ? ' disabled' : '') + '>' + (S.busy[id] ? 'Saving…' : label) + '</button>' +
+return '<button class="cta' + (alt ? ' alt' : '') + '" data-save="' + id + '">' + label + '</button>' +
 (S.open[id] ? '<button class="ghost" data-close="' + id + '" style="align-self:center">Cancel</button>' : '');
 }
 function textArea(key, label, ph, rows) {
 return '<label class="f"><span>' + label + '</span><textarea id="t_' + key + '" data-d="' + key + '" placeholder="' + esc(ph || '') + '"' + (rows ? ' style="min-height:' + rows + 'px"' : '') + '>' + esc(draft(key, '')) + '</textarea></label>';
 }
-function sliderBlock(key, min, max, current) {
+function sliderBlock(key, min, max, current, name) {
 const touched = key in S.d;
 const val = touched ? Number(S.d[key]) : (current !== '' && current != null && !isNaN(Number(current)) ? Number(current) : (min < 0 ? 0 : (min + max) / 2));
 const pct = v => ((v - min) / (max - min) * 100) + '%';
 const mid = min < 0;
 const style = mid ? '--lo:' + pct(Math.min(0, val)) + ';--hi:' + pct(Math.max(0, val)) : '--fill-a:' + pct(val);
 return '<div class="slider"><div class="ctl"><button class="nudge" data-nudge="' + key + '" data-step="-0.5" data-min="' + min + '" data-max="' + max + '" aria-label="Down half a point">−</button>' +
-'<input type="range" id="r_' + key + '" data-range="' + key + '" min="' + min + '" max="' + max + '" step="0.5" value="' + val + '" class="' + (mid ? 'mid ' : '') + (touched ? '' : 'untouched') + '" style="' + style + '" aria-label="Score">' +
+'<input type="range" id="r_' + key + '" data-range="' + key + '" min="' + min + '" max="' + max + '" step="0.5" value="' + val + '" class="' + (mid ? 'mid ' : '') + (touched || filled(current) ? '' : 'untouched') + '" style="' + style + '" aria-label="' + esc(name || 'Score') + '">' +
 '<button class="nudge" data-nudge="' + key + '" data-step="0.5" data-min="' + min + '" data-max="' + max + '" aria-label="Up half a point">+</button></div>' +
 '<div class="ends"><span>' + (mid ? '−5' : '0') + '</span>' + (mid ? '<span>0</span>' : '') + '<span>' + (mid ? '+5' : '10') + '</span></div></div>';
 }
 function scoreDisplay(key, current, isMood) {
 const touched = key in S.d;
-if (!touched) return '<div class="big empty">' + (current ? esc(current) : '—') + '</div>';
+if (!touched) return '<div class="big' + (current ? '' : ' empty') + '">' + (current ? esc(current) : '') + '</div>';
 const v = Number(S.d[key]);
 return '<div class="big">' + (isMood ? signed(v) : v) + '</div>';
 }
@@ -520,8 +592,8 @@ return '';
 // [from, by]: shows on Now from `from`; after `by` it moves to Catch up
 const DUE = {
 sleep: [3, 12], weight: [3, 12], ketones: [3, 12], amMood: [11.5, 14],
-supps: [12, 27], exercise: [17, 27], aftMood: [17.5, 21], bowel: [18, 27],
-lastBite: [19.5, 27], eveMood: [21, 27], appetite: [21, 27], dailyMood: [21, 27]
+supps: [12, 27], exercise: [9, 27], aftMood: [17.5, 21], bowel: [18, 27],
+lastBite: [20, 27], eveMood: [21, 27], appetite: [21, 27], dailyMood: [21, 27]
 };
 const NAMES = { sleep: 'Sleep', weight: 'Weight', ketones: 'Ketones', amMood: 'AM mood', bowel: 'Bowel', supps: 'Supplements', exercise: 'Exercise', aftMood: 'Afternoon mood', lastBite: 'Last bite', eveMood: 'Evening mood', appetite: 'Appetite', dailyMood: 'Overall mood' };
 const hourNow = () => { const d = new Date(); const h = d.getHours() + d.getMinutes() / 60; return h < 3 ? h + 24 : h; };
@@ -546,7 +618,7 @@ function nowParts(v) {
 const past = S.offset !== 0, h = hourNow();
 const undone = ITEMS.filter(i => !i.done(v));
 if (past) return { past, h, due: [], missed: undone, next: null };
-const due = undone.filter(i => DUE[i.id][0] <= h && h < DUE[i.id][1]).sort((a, b) => DUE[a.id][0] - DUE[b.id][0]);
+const due = undone.filter(i => DUE[i.id][0] <= h && h < DUE[i.id][1]).sort((a, b) => DUE[a.id][0] - DUE[b.id][0] || ITEMS.indexOf(a) - ITEMS.indexOf(b));
 const missed = undone.filter(i => h >= DUE[i.id][1]);
 const next = undone.filter(i => h < DUE[i.id][0]).sort((a, b) => DUE[a.id][0] - DUE[b.id][0])[0] || null;
 return { past, h, due, missed, next };
@@ -568,6 +640,9 @@ return '<button class="' + st + '" data-tab="' + (isDaily ? 'Evening' : MOOD_MET
 });
 return '<div class="tl"><span class="rail"></span><span class="fill" style="width:' + (reach / 3 * 75) + '%"></span>' + cells.join('') + '</div>';
 }
+// the Now screen changes with the clock: re-draw only when what's due actually changes
+let nowSig = '';
+function sig() { if (!S.data || S.offset !== 0) return ''; const P = nowParts(V()); return P.due.map(i => i.id) + '|' + P.missed.map(i => i.id) + '|' + (P.next ? P.next.id : ''); }
 function nowView(v) {
 const P = nowParts(v);
 const sec = s => '<div class="sec">' + s + '</div>';
@@ -575,22 +650,22 @@ let h = timelineView(v, P);
 if (P.due.length) h += sec('Due now') + cards(P.due.map(i => i.id), v);
 if (P.missed.length) h += sec(P.past ? 'Not logged' : 'Catch up') + cards(P.missed.map(i => i.id), v);
 if (!P.due.length && !P.missed.length) {
-const next = P.next ? 'Next: ' + NAMES[P.next.id] + ' from ' + fmtH(DUE[P.next.id][0]) + '.' : 'Everything for this day is logged.';
+const next = P.next ? NAMES[P.next.id] + ' opens at ' + fmtH(DUE[P.next.id][0]) : 'Everything for this day is logged';
 h += '<div class="card caught"><div class="tick">' + ICON.tick + '</div><h2>All caught up</h2><div class="note">' + next + '</div></div>';
-} else if (P.next && !P.due.length) h += '<div class="note">Next: ' + NAMES[P.next.id] + ' from ' + fmtH(DUE[P.next.id][0]) + '.</div>';
+} else if (P.next && !P.due.length) h += '<div class="note">' + NAMES[P.next.id] + ' opens at ' + fmtH(DUE[P.next.id][0]) + '</div>';
 return h;
 }
 function sleepCard(v) {
 const isDone = !!v.sleepQ;
 if (!isOpen('sleep', isDone)) return loggedRow('sleep', 'Sleep', v.sleepQ + ' / 10' + (v.sleepNotes ? ' · note saved' : ''));
 return '<div class="card"><div class="head"><h2>Sleep quality</h2>' + scoreDisplay('sleepQ', v.sleepQ) + '</div>' +
-sliderBlock('sleepQ', 0, 10, v.sleepQ) + textArea('sleepNotes', 'Sleep notes', 'How was the night?') + saveBtn('sleep', 'Save sleep') + '</div>';
+sliderBlock('sleepQ', 0, 10, v.sleepQ, 'Sleep quality') + textArea('sleepNotes', 'Sleep notes', 'How was the night?') + saveBtn('sleep', 'Save sleep') + '</div>';
 }
 function tile(v, id) {
-const [key, lab, unit, ph] = id === 'weight' ? ['weight', 'Weight', 'kg', '76.0'] : ['ketonesAM', 'Waking ketones', 'mmol/L', '1.5'];
+const [key, lab, unit, ph] = id === 'weight' ? ['weight', 'Weight', 'kg', '76.0'] : ['ketonesAM', 'Ketones', 'mmol/L', '1.5'];
 if (v[key] && !S.open[id]) return '<div class="tile"><div class="lab">' + lab + '</div><button class="val" data-edit="' + id + '" aria-label="Edit ' + lab + '">' + esc(v[key]) + '<small> ' + unit + '</small></button><div class="ok">Logged · tap to edit</div></div>';
 return '<div class="tile"><label class="f"><span>' + lab + ' (' + unit + ')</span><input class="in num" id="i_' + key + '" data-d="' + key + '" inputmode="decimal" placeholder="' + ph + '" value="' + esc(draft(key, '')) + '"></label>' +
-'<button class="cta" style="height:44px" data-save="' + id + '"' + (S.busy[id] ? ' disabled' : '') + '>' + (S.busy[id] ? 'Saving…' : 'Save') + '</button></div>';
+'<button class="cta alt" data-save="' + id + '">Save</button></div>';
 }
 function moodCard(p, title, when, v) {
 const mk = p + 'Mood', sc = SCORES[p];
@@ -601,10 +676,10 @@ const short = { Fog: 'fog', Irr: 'irritability', Energy: 'energy' };
 return loggedRow(mk, title, signed(Number(v[mk])) + sc.map(([k]) => ' · ' + short[k.slice(p.length)] + ' ' + v[k]).join(''));
 }
 return '<div class="card"><div class="head"><h2>' + title + '</h2>' + scoreDisplay(mk, filled(v[mk]) ? signed(Number(v[mk])) : '', true) + '</div>' +
-'<div class="note" style="padding:0;margin-top:-8px">' + when + (first ? ' · saves itself when all 4 are set' : '') + '</div>' +
-sliderBlock(mk, -5, 5, v[mk]) + sc.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
-(first ? '<div class="autobar"><div class="bar"><i style="width:' + (set * 25) + '%"></i></div><span>' + (S.busy[mk] || AUTO[mk] ? 'Saving…' : set + ' of 4 set') + '</span>' +
-(set && set < 4 && !S.busy[mk] ? '<button class="ghost" data-save="' + mk + '">Save now</button>' : '') + '</div>' : saveBtn(mk, 'Save ' + title)) + '</div>';
+'<div class="note" style="padding:0;margin-top:-8px">' + when + '</div>' +
+sliderBlock(mk, -5, 5, v[mk], title) + sc.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
+(first ? '<div class="autobar"><div class="bar"><i style="width:' + (set * 25) + '%"></i></div><span>' + (AUTO[mk] ? 'Saving…' : set + ' of 4 set' + (set < 4 ? ', then it saves itself' : '')) + '</span>' +
+(set && !AUTO[mk] ? '<button class="ghost" data-save="' + mk + '">Save now</button>' : '') + '</div>' : saveBtn(mk, 'Save ' + title)) + '</div>';
 }
 function scoreRow(key, label, hint, current) {
 const val = key in S.d ? S.d[key] : (filled(current) ? String(Number(current)) : '');
@@ -614,18 +689,18 @@ for (let i = 0; i <= 10; i++) {
 const on = n === i, half = n === i + 0.5;
 btns += '<button data-score="' + key + '" data-v="' + i + '" data-cur="' + esc(val) + '" class="' + (on ? 'on' : half ? 'on half' : '') + '" aria-pressed="' + (on || half) + '" aria-label="' + label + ' ' + (half ? i + ' and a half' : i) + '">' + i + (half ? '½' : '') + '</button>';
 }
-return '<div class="srow"><div class="lbl"><span>' + label + ' · ' + hint + '</span><b class="' + (val === '' ? 'empty' : '') + '">' + (val === '' ? '—' : esc(val)) + '</b></div><div class="grid11">' + btns + '</div></div>';
+return '<div class="srow"><div class="lbl"><span>' + label + ', ' + hint + '</span><b>' + esc(val) + '</b></div><div class="grid11">' + btns + '</div></div>';
 }
 function bowelCard(v) {
 if (!isOpen('bowel', !!v.bowel)) return loggedRow('bowel', 'Bowel movements', v.bowel);
-return '<div class="card"><h2>Bowel movements</h2>' + (v.bowel ? '<div class="saved">Saved: ' + esc(v.bowel) + '</div>' : '') + textArea('bowel', 'What happened', '') + saveBtn('bowel', 'Save', true) + '</div>';
+return '<div class="card"><h2>Bowel movements</h2>' + (v.bowel ? '<div class="saved">Saved: ' + esc(v.bowel) + '</div>' : '') + textArea('bowel', 'What happened', '') + saveBtn('bowel', 'Save') + '</div>';
 }
 function timeCard(key, title, v) {
 const isDone = !!v[key];
 if (!isOpen(key, isDone)) {
 return loggedRow(key, title, v[key]);
 }
-return '<div class="card"><h2>' + title + '</h2><div class="inline"><label class="f"><span>Time (now, tap to change)</span><input type="time" class="in" id="i_' + key + '" data-d="' + key + '" value="' + esc(draft(key, nowHHMM())) + '"></label>' +
+return '<div class="card"><h2>' + title + '</h2><div class="inline"><label class="f"><span>' + (S.offset === 0 ? 'Time (now, tap to change)' : 'Time') + '</span><input type="time" class="in" id="i_' + key + '" data-d="' + key + '" value="' + esc(draft(key, S.offset === 0 ? nowHHMM() : '')) + '"></label>' +
 '<button class="cta sm" data-save="' + key + '"' + (S.busy[key] ? ' disabled' : '') + '>' + (S.busy[key] ? '…' : 'Log') + '</button></div>' +
 (S.open[key] ? '<button class="ghost" data-close="' + key + '" style="align-self:center">Cancel</button>' : '') + '</div>';
 }
@@ -651,11 +726,12 @@ const lc = draft('lcarn', v.lcarn || numOnly(prev.lcarn)), mg = draft('mag', v.m
 return '<div class="card" style="padding:4px 16px 16px"><details' + (S.open.suppsBody !== false ? ' open' : '') + ' id="supp-d" style="border:0;background:none;padding:0">' +
 '<summary><span>Supplements</span><small>' + sel.length + ' ticked</small>' + ICON.chev + '</summary><div class="in-details">' +
 '<div class="checks">' + SUPPS.map(([k, n]) => '<button data-supp="' + k + '" class="' + (sel.indexOf(k) >= 0 ? 'on' : '') + '" aria-pressed="' + (sel.indexOf(k) >= 0) + '"><span class="box">' + ICON.tick + '</span>' + n + '</button>').join('') + '</div>' +
-'<div class="grid3"><label class="f"><span class="lab12">L-carnitine (mg)</span><input class="in num" id="i_lcarn" data-d="lcarn" inputmode="numeric" value="' + esc(lc) + '"></label>' +
-'<label class="f"><span class="lab12">Magnesium (caps)</span><input class="in num" id="i_mag" data-d="mag" inputmode="numeric" value="' + esc(mg) + '"></label>' +
-'<label class="f"><span class="lab12">Creatine (g)</span><input class="in num" id="i_creatine" data-d="creatine" inputmode="decimal" value="' + esc(cr) + '"></label></div>' +
+'<div class="grid3"><label class="f"><span class="lab12">L-carnitine mg</span><input class="in num" id="i_lcarn" data-d="lcarn" inputmode="numeric" value="' + esc(lc) + '"></label>' +
+'<label class="f"><span class="lab12">Magnesium caps</span><input class="in num" id="i_mag" data-d="mag" inputmode="numeric" value="' + esc(mg) + '"></label>' +
+'<label class="f"><span class="lab12">Creatine g</span><input class="in num" id="i_creatine" data-d="creatine" inputmode="decimal" value="' + esc(cr) + '"></label></div>' +
 '<div class="lab12">Amounts start at yesterday’s. Unticked ones stay blank.</div>' + saveBtn('supps', 'Save supplements') + '</div></details></div>';
 }
+const restOption = () => ((S.data && S.data.exOptions) || []).find(o => /^rest$/i.test(String(o).trim()));
 function exerciseCard(v) {
 const gymBits = GYM.filter(([k]) => filled(v[k])).map(([k, l]) => l.toLowerCase() + ' ' + v[k]).concat(v.gymDur ? ['duration ' + v.gymDur] : [], v.gymInt ? ['intensity ' + v.gymInt] : []);
 if (!isOpen('exercise', !!v.exercise)) return loggedRow('exercise', 'Exercise', v.exercise + (gymBits.length ? ' · ' + gymBits.join(' · ') : '') + (v.exNotes ? ' · notes saved' : ''));
@@ -663,7 +739,7 @@ const opts = (S.data && S.data.exOptions) || [];
 const sel = draft('exSel', []);
 const seg = (key, labels) => '<div class="seg" data-segkey="' + key + '">' + labels.map(l => '<button data-segv="' + l + '" class="' + (draft(key, '') === l ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
 const pick = (title, sheetKey, segKey, labels, noteKey, ph) => '<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">' + title + (v[sheetKey] ? ' · saved: ' + esc(v[sheetKey]) : '') + '</span>' + seg(segKey, labels) +
-'<input class="in" id="i_' + noteKey + '" data-d="' + noteKey + '" placeholder="' + ph + '" value="' + esc(draft(noteKey, '')) + '"></div>';
+'<input class="in" id="i_' + noteKey + '" data-d="' + noteKey + '" aria-label="' + title + ' note" placeholder="' + ph + '" value="' + esc(draft(noteKey, '')) + '"></div>';
 const gymOn = sel.some(o => /gym/i.test(o)) || gymBits.length > 0;
 const open = S.open.gym === undefined ? gymOn : S.open.gym;
 const shown = GYM.map(([k]) => (k in S.d ? S.d[k] : v[k])).filter(filled);
@@ -676,16 +752,17 @@ pick('Duration', 'gymDur', 'g_dur', ['Too short', 'Good', 'Too long'], 'g_durNot
 pick('Intensity', 'gymInt', 'g_int', ['Too easy', 'Good', 'Too hard'], 'g_intNote', 'Intensity note (optional)') +
 '</div></details>' +
 (v.exNotes ? '<div class="saved">Notes saved: ' + esc(v.exNotes) + '</div>' : '') +
-textArea('exNotes', 'Exercise notes', 'How today’s exercise went', 96) + saveBtn('exercise', 'Save exercise') + '</div>';
+textArea('exNotes', 'Exercise notes', 'How today’s exercise went', 96) +
+(!v.exercise && restOption() ? '<div class="two"><button class="cta" data-save="exercise">Save exercise</button><button class="cta alt" data-rest="1">Rest day</button></div>' : saveBtn('exercise', 'Save exercise')) + '</div>';
 }
 function appetiteCard(v) {
 const hasScore = 'appetiteScore' in v;
 const isDone = ITEMS.find(i => i.id === 'appetite').done(v);
 if (!isOpen('appetite', isDone)) return loggedRow('appetite', 'Appetite', [filled(v.appetiteScore) ? v.appetiteScore + ' / 10' : '', v.appetite].filter(Boolean).join(' · '));
 return '<div class="card"><h2>Appetite</h2>' +
-(hasScore ? scoreRow('appetiteScore', 'Appetite today', '10 = very hungry', v.appetiteScore) : '') +
+(hasScore ? scoreRow('appetiteScore', 'Appetite today', '10 is very hungry', v.appetiteScore) : '') +
 (v.appetite ? '<div class="saved">Saved: ' + esc(v.appetite) + '</div>' : '') +
-textArea('appetite', hasScore ? 'Note' : 'Your appetite today', 'e.g. hungry before lunch, none after dinner') + saveBtn('appetite', 'Save appetite', true) + '</div>';
+textArea('appetite', hasScore ? 'Note' : 'Your appetite today', 'e.g. hungry before lunch, none after dinner') + saveBtn('appetite', 'Save appetite') + '</div>';
 }
 function dailyMoodCard(v) {
 const isDone = dailyDone(v);
@@ -695,11 +772,11 @@ return loggedRow('dailyMood', 'Daily mood', signed(Number(v.dMood)) + ' (' + sig
 }
 const moodSlider = ([k, l]) => {
 const t = k in S.d, cur = filled(v[k]) ? signed(Number(v[k])) : '';
-return '<div class="slbl"><span>' + l + '</span><b data-for="' + k + '" class="' + (t || cur ? '' : 'empty') + '">' + (t ? signed(Number(S.d[k])) : (cur || '—')) + '</b></div>' + sliderBlock(k, -5, 5, v[k]);
+return '<div class="slbl"><span>' + l + '</span><b data-for="' + k + '" class="' + (t || cur ? '' : 'empty') + '">' + (t ? signed(Number(S.d[k])) : cur) + '</b></div>' + sliderBlock(k, -5, 5, v[k], l);
 };
 return '<div class="card"><h2>Daily mood</h2><div class="note" style="padding:0">The whole day, end of day.</div>' +
 DAILY.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
-'<div class="sub">Mood −5 to +5</div>' + DAILY_MOOD.map(moodSlider).join('') +
+'<div class="sub">Mood, −5 to +5</div>' + DAILY_MOOD.map(moodSlider).join('') +
 (v.moodNotes ? '<div class="saved">Saved: ' + esc(v.moodNotes) + '</div>' : '') +
 textArea('moodNotes', 'Overall mood notes', 'How the day went overall', 96) + saveBtn('dailyMood', 'Save daily mood') + '</div>';
 }
@@ -763,7 +840,7 @@ if (!text(id)) throw new Error('Write something first');
 items.push({ key: id, value: text(id), mode: 'append' });
 break;
 case 'lastBite': {
-const t = draft(id, nowHHMM());
+const t = draft(id, S.offset === 0 ? nowHHMM() : '');
 if (!/^\d{2}:\d{2}$/.test(t)) throw new Error('Pick a time');
 items.push({ key: id, value: t, mode: 'new' });
 break;
@@ -805,36 +882,32 @@ if (moodDone(v, p) || S.open[mk]) return;
 const all = [mk].concat(SCORES[p].map(([s]) => s)).every(x => (x in S.d ? S.d[x] !== '' : filled(v[x])));
 if (all) AUTO[mk] = setTimeout(() => { delete AUTO[mk]; autoSave(p); }, 1000);
 }
-async function autoSave(p) {
+function autoSave(p) {
 const mk = p + 'Mood';
 let items; try { items = collect(mk); } catch (e) { return; }
 const v = V(), label = S.data ? S.data.label : expectedLabel(S.offset);
 const undo = items.filter(it => !filled(v[it.key])).map(it => ({ key: it.key, mode: 'clear', expect: it.value }));
-const r = await send(mk, items, label, true);
-const name = MOOD_META[p][0];
-if (r.status === 'ok') toast(name + ' saved', true, { label: 'Undo', fn: () => undoSave(undo, label) });
-else if (r.status === 'queued') toast(name + ' kept on the phone', true, { label: 'Undo', fn: () => { setQ(getQ().filter(j => j.id !== r.id)); render(); toast('Undone', true); } });
+const id = submit(mk, items, label, true);
+toast(MOOD_META[p][0] + ' saved', true, { label: 'Undo', fn: () => undoJob(id, mk, items, undo, label) });
 }
-async function undoSave(undo, label) {
-if (!undo.length) return;
-try { await api('save', { items: undo, label }); toast('Undone', true); }
-catch (e) { toast(e.net ? 'No signal, couldn’t undo. Edit it instead.' : e.message, false); }
-load(true);
+// Undo: if it hasn't been sent yet, just drop it; otherwise clear those cells (only if they still hold what was sent). Your numbers come back so you can fix one.
+function undoJob(id, cardId, items, undo, label) {
+if (S.sending !== id && getQ().some(j => j.id === id)) setQ(getQ().filter(j => j.id !== id));
+else if (undo.length) submit(cardId + 'Undo', undo, label, true);
+if (S.data && S.data.label === label) items.forEach(it => { S.d[it.key] = String(it.value); });
+render(); toast('Undone', true);
 }
 // ---------------------------------------------------------------- events
 function bind() {
 const app = $('#app');
 const prev = $('#prev'), next = $('#next');
-if (prev) prev.onclick = () => { S.offset--; S.data = null; S.open = {}; S.d = {}; load(); };
-if (next) next.onclick = () => { S.offset++; S.data = null; S.open = {}; S.d = {}; load(); };
+if (prev) prev.onclick = () => { S.offset--; S.data = null; S.err = null; S.open = {}; S.d = {}; load(); };
+if (next) next.onclick = () => { S.offset++; S.data = null; S.err = null; S.open = {}; S.d = {}; load(); };
 const reset = $('#reset');
 if (reset) reset.onclick = () => { if (confirmReset()) { localStorage.removeItem(LS_CFG); S.cfg = null; render(); } };
 }
 function confirmReset() { return window.confirm('Disconnect this phone? You’ll need the setup link again.'); }
-document.addEventListener('input', e => {
-const el = e.target;
-if (el.dataset.d) { S.d[el.dataset.d] = el.value; return; }
-if (el.dataset.range) {
+function rangeSet(el) {
 const k = el.dataset.range; S.d[k] = el.value;
 const min = +el.min, max = +el.max, val = +el.value, pct = x => ((x - min) / (max - min) * 100) + '%';
 el.classList.remove('untouched');
@@ -842,12 +915,21 @@ if (min < 0) { el.style.setProperty('--lo', pct(Math.min(0, val))); el.style.set
 else el.style.setProperty('--fill-a', pct(val));
 const big = document.querySelector('[data-for="' + k + '"]') || el.closest('.card').querySelector('.big');
 if (big) { big.classList.remove('empty'); big.textContent = min < 0 ? signed(val) : val; }
-maybeAuto(k);
+keepDrafts(); maybeAuto(k);
 }
+document.addEventListener('input', e => {
+const el = e.target;
+if (el.dataset.d) { S.d[el.dataset.d] = el.value; keepDrafts(); return; }
+if (el.dataset.range) rangeSet(el);
 });
+// a tap on a slider that's already where you want it (mood 0, sleep 5) counts as setting it
+const rangeTap = e => { const el = e.target; if (el && el.dataset && el.dataset.range && !(el.dataset.range in S.d)) { rangeSet(el); if ($('.autobar')) render(); } };
+document.addEventListener('pointerup', rangeTap);
+document.addEventListener('change', e => { if (e.target.dataset && e.target.dataset.range && $('.autobar')) render(); });
 document.addEventListener('click', e => {
 const b = e.target.closest('button');
 if (!b) {
+rangeTap(e);
 const sum = e.target.closest('summary');
 if (sum) { const det = sum.parentElement; setTimeout(() => { if (det.id === 'gym-d') S.open.gym = det.open; if (det.id === 'supp-d') S.open.suppsBody = det.open; }, 0); }
 return;
@@ -864,6 +946,9 @@ maybeAuto(k); render(); return;
 }
 if (ds.suppedit) { S.open.suppEdit = true; render(); return; }
 if (ds.flush) { flush(true); return; }
+if (ds.retry) { load(); flush(); return; }
+if (ds.review) { review(); return; }
+if (ds.rest) { const r = restOption(); if (!r) return; S.d.exSel = [r]; let its; try { its = collect('exercise'); } catch (err) { toast(err.message, false); return; } submit('exercise', its); return; }
 if (ds.update) { (window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : Promise.resolve()).then(() => location.reload()); return; }
 if (ds.tab) { S.tab = ds.tab; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
 if (ds.fold) { const k = ds.fold, open = !S.open[k]; S.open[k] = open; if (!open) Object.keys(S.open).forEach(x => { if (x !== k && ITEMS.some(i => i.id === x)) S.open[x] = false; }); render(); return; }
@@ -895,24 +980,36 @@ S.d.supSel = sel; render(); return;
 if (ds.save) {
 let items;
 try { items = collect(ds.save); } catch (err) { toast(err.message, false); return; }
-send(ds.save, items);
+if (AUTO[ds.save]) { clearTimeout(AUTO[ds.save]); delete AUTO[ds.save]; }
+submit(ds.save, items);
 }
 });
+function newDayCheck() {
+if (S.offset === 0 && S.data && S.data.label !== expectedLabel(0)) { S.data = null; S.err = null; S.open = {}; S.d = {}; S.tab = defaultTab(); return true; }
+return false;
+}
 document.addEventListener('visibilitychange', () => {
 if (document.hidden || !S.cfg) return;
-const want = expectedLabel(S.offset);
-if (S.offset === 0 && S.data && S.data.label !== want) { S.data = null; S.open = {}; S.d = {}; S.tab = defaultTab(); }
-if (getQ().length) flush(); else load(true);
+newDayCheck();
+flush(); load(true);
 checkUpdate();
 });
+setInterval(() => {
+if (document.hidden || !S.cfg || !S.data) return;
+if (newDayCheck()) { load(); return; }
+if (getQ().some(j => !j.held)) flush();
+if (sig() !== nowSig) render();
+}, 30000);
 async function checkUpdate() {
 try { const j = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()); if (String(j.v) !== APP_VERSION && !S.update) { S.update = true; render(); } } catch (e) {}
 }
-window.addEventListener('online', () => flush());
+window.addEventListener('online', () => { flush(); if (S.err) load(true); });
 window.addEventListener('hashchange', () => { takeSetupFromLink(); S.cfg = readCfg(); if (S.cfg) { S.data = null; load(); } });
 // ---------------------------------------------------------------- start
 takeSetupFromLink();
 S.cfg = readCfg();
+// drop kept typing that's older than the days the app can open
+try { const keep = {}; for (let o = 0; o >= -6; o--) keep[LS_D + ':' + expectedLabel(o)] = 1; Object.keys(localStorage).forEach(k => { if (k.indexOf(LS_D + ':') === 0 && !keep[k]) localStorage.removeItem(k); }); } catch (e) {}
 const qTab = new URLSearchParams(location.search).get('tab');
 S.tab = TABS.indexOf(qTab) >= 0 ? qTab : defaultTab();
 if (S.cfg) { load().then(() => flush()); } else render();
