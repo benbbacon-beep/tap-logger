@@ -199,7 +199,7 @@ button { transition: transform .08s, background-color .15s; }
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue', LS_SHAPE = 'tl_shape', LS_D = 'tl_draft';
-const APP_VERSION = '10';
+const APP_VERSION = '11';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -223,7 +223,7 @@ cfg: null, offset: 0, data: null, loading: false, stale: false, seq: 0, err: nul
 tab: null, open: {}, busy: {}, d: {}  // d = drafts the user has typed but not saved
 };
 const TABS = ['Now', 'Morning', 'Day', 'Evening', 'More'];
-const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3'], ['electro', 'Electrolytes']];
+const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3']];
 const SCORES = {
 am: [['amFog', 'Brain fog', '0 is none'], ['amIrr', 'Irritability / agitation', '0 is none'], ['amEnergy', 'Energy', '10 is best']],
 aft: [['aftFog', 'Brain fog', '0 is none'], ['aftIrr', 'Irritability / agitation', '0 is none'], ['aftEnergy', 'Energy', '10 is best']],
@@ -232,7 +232,7 @@ eve: [['eveFog', 'Brain fog', '0 is none'], ['eveIrr', 'Irritability / agitation
 const filled = x => x !== '' && x != null;
 const moodDone = (v, p) => filled(v[p + 'Mood']) && SCORES[p].every(([k]) => filled(v[k]));
 const numOnly = x => (/^\s*\d+(\.\d+)?\s*$/.test(String(x == null ? '' : x)) ? String(x).trim() : '');
-const TEXT_KEYS = ['sleepNotes', 'bowel', 'exNotes', 'moodNotes', 'appetite', 'extraKet', 'glucose', 'illness', 'exercise', 'gymDur', 'gymInt'];
+const TEXT_KEYS = ['sleepNotes', 'bowel', 'exNotes', 'moodNotes', 'extraKet', 'glucose', 'illness', 'exercise', 'gymDur', 'gymInt'];
 const DAILY = [['depressive', 'Depressive symptoms', '0 is none'], ['manic', 'Manic symptoms', '0 is none'], ['dFog', 'Brain fog', '0 is none'], ['dIrr', 'Irritability / agitation', '0 is none'], ['dEnergy', 'Energy', '10 is best']];
 const DAILY_MOOD = [['dMood', 'Overall mood'], ['dHigh', 'Highest mood'], ['dLow', 'Lowest mood']];
 const GYM = [['gymFocus', 'Focus', '10 is best'], ['gymEnergy', 'Energy', '10 is best'], ['gymStrength', 'Strength', '10 is best']];
@@ -243,12 +243,11 @@ const ITEMS = [
 { id: 'ketones', tab: 'Morning', done: v => !!v.ketonesAM },
 { id: 'amMood', tab: 'Morning', done: v => moodDone(v, 'am') },
 { id: 'bowel', tab: 'Day', done: v => !!v.bowel },
-{ id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'electro', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
+{ id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
 { id: 'exercise', tab: 'Day', done: v => !!v.exercise },
 { id: 'aftMood', tab: 'Day', done: v => moodDone(v, 'aft') },
 { id: 'lastBite', tab: 'Evening', done: v => !!v.lastBite },
 { id: 'eveMood', tab: 'Evening', done: v => moodDone(v, 'eve') },
-{ id: 'appetite', tab: 'Evening', done: v => ('appetiteScore' in v ? filled(v.appetiteScore) : !!v.appetite) },
 { id: 'dailyMood', tab: 'Evening', done: dailyDone }
 ];
 function defaultTab() { return 'Now'; }
@@ -326,7 +325,7 @@ const sh = JSON.parse(localStorage.getItem(LS_SHAPE) || 'null');
 if (!sh || !sh.keys) return null;
 const values = {}, prev = {};
 sh.keys.forEach(k => { values[k] = ''; });
-try { const y = JSON.parse(localStorage.getItem(cacheKey(expectedLabel(S.offset - 1))) || 'null'); if (y) ['lcarn', 'mag', 'creatine', 'multivit', 'vitD', 'omega', 'electro'].forEach(k => { prev[k] = y.values[k] || ''; }); } catch (e) {}
+try { const y = JSON.parse(localStorage.getItem(cacheKey(expectedLabel(S.offset - 1))) || 'null'); if (y) ['lcarn', 'mag', 'creatine', 'multivit', 'vitD', 'omega'].forEach(k => { prev[k] = y.values[k] || ''; }); } catch (e) {}
 return { label: expectedLabel(S.offset), values, prev, exOptions: sh.exOptions || [], blank: true };
 } catch (e) { return null; }
 }
@@ -409,7 +408,7 @@ const CLEAR = {
 sleep: ['sleepQ', 'sleepNotes'],
 exercise: ['exSel', 'gymFocus', 'gymEnergy', 'gymStrength', 'g_dur', 'g_durNote', 'g_int', 'g_intNote', 'exNotes'],
 dailyMood: ['depressive', 'manic', 'dFog', 'dIrr', 'dEnergy', 'dMood', 'dHigh', 'dLow', 'moodNotes'],
-supps: ['supSel', 'lcarn', 'mag', 'creatine'], appetite: ['appetite', 'appetiteScore'],
+supps: ['supSel', 'lcarn', 'mag', 'creatine'],
 amMood: ['amMood', 'amFog', 'amIrr', 'amEnergy'], aftMood: ['aftMood', 'aftFog', 'aftIrr', 'aftEnergy'], eveMood: ['eveMood', 'eveFog', 'eveIrr', 'eveEnergy']
 };
 function openConflicts(job, conflicts) {
@@ -558,7 +557,7 @@ const v = V();
 if (t === 'Now') return nowView(v);
 if (t === 'Morning') return tabCards(['sleep', 'weight', 'ketones', 'amMood'], v, t);
 if (t === 'Day') return tabCards(['supps', 'exercise', 'aftMood', 'bowel'], v, t);
-if (t === 'Evening') return tabCards(['lastBite', 'eveMood', 'appetite', 'dailyMood'], v, t);
+if (t === 'Evening') return tabCards(['lastBite', 'eveMood', 'dailyMood'], v, t);
 return moreCard('extraKet', 'Extra ketone readings', 'Time and reading', 'e.g. 17:15 - 1.5', 'append', v) +
 moreCard('glucose', 'Glucose', 'Reading and time (mmol/L)', 'e.g. 5.1 at 17:05', 'append', v) +
 ('illness' in v ? moreCard('illness', 'Illness / symptoms', 'Only if you’re unwell. Leave blank when well', 'e.g. sore throat, cold', 'append', v) : '') +
@@ -583,7 +582,6 @@ case 'bowel': return bowelCard(v);
 case 'lastBite': return timeCard('lastBite', 'Last bite', v);
 case 'supps': return suppCard(v);
 case 'exercise': return exerciseCard(v);
-case 'appetite': return appetiteCard(v);
 case 'dailyMood': return dailyMoodCard(v);
 }
 return '';
@@ -593,9 +591,9 @@ return '';
 const DUE = {
 sleep: [3, 12], weight: [3, 12], ketones: [3, 12], amMood: [11.5, 14],
 supps: [12, 27], exercise: [9, 27], aftMood: [17.5, 21], bowel: [18, 27],
-lastBite: [20, 27], eveMood: [21, 27], appetite: [21, 27], dailyMood: [21, 27]
+lastBite: [20, 27], eveMood: [21, 27], dailyMood: [21, 27]
 };
-const NAMES = { sleep: 'Sleep', weight: 'Weight', ketones: 'Ketones', amMood: 'AM mood', bowel: 'Bowel', supps: 'Supplements', exercise: 'Exercise', aftMood: 'Afternoon mood', lastBite: 'Last bite', eveMood: 'Evening mood', appetite: 'Appetite', dailyMood: 'Overall mood' };
+const NAMES = { sleep: 'Sleep', weight: 'Weight', ketones: 'Ketones', amMood: 'AM mood', bowel: 'Bowel', supps: 'Supplements', exercise: 'Exercise', aftMood: 'Afternoon mood', lastBite: 'Last bite', eveMood: 'Evening mood', dailyMood: 'Overall mood' };
 const hourNow = () => { const d = new Date(); const h = d.getHours() + d.getMinutes() / 60; return h < 3 ? h + 24 : h; };
 const fmtH = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 60); return (hh % 12 || 12) + (mm ? ':' + pad(mm) : '') + (hh < 12 ? ' AM' : ' PM'); };
 const itemDone = (id, v) => ITEMS.find(i => i.id === id).done(v);
@@ -755,15 +753,6 @@ pick('Intensity', 'gymInt', 'g_int', ['Too easy', 'Good', 'Too hard'], 'g_intNot
 textArea('exNotes', 'Exercise notes', 'How today’s exercise went', 96) +
 (!v.exercise && restOption() ? '<div class="two"><button class="cta" data-save="exercise">Save exercise</button><button class="cta alt" data-rest="1">Rest day</button></div>' : saveBtn('exercise', 'Save exercise')) + '</div>';
 }
-function appetiteCard(v) {
-const hasScore = 'appetiteScore' in v;
-const isDone = ITEMS.find(i => i.id === 'appetite').done(v);
-if (!isOpen('appetite', isDone)) return loggedRow('appetite', 'Appetite', [filled(v.appetiteScore) ? v.appetiteScore + ' / 10' : '', v.appetite].filter(Boolean).join(' · '));
-return '<div class="card"><h2>Appetite</h2>' +
-(hasScore ? scoreRow('appetiteScore', 'Appetite today', '10 is very hungry', v.appetiteScore) : '') +
-(v.appetite ? '<div class="saved">Saved: ' + esc(v.appetite) + '</div>' : '') +
-textArea('appetite', hasScore ? 'Note' : 'Your appetite today', 'e.g. hungry before lunch, none after dinner') + saveBtn('appetite', 'Save appetite') + '</div>';
-}
 function dailyMoodCard(v) {
 const isDone = dailyDone(v);
 if (!isOpen('dailyMood', isDone)) {
@@ -821,11 +810,6 @@ break;
 case 'bowel':
 if (!text(id)) throw new Error('Write something first');
 items.push({ key: id, value: text(id), mode: 'new' });
-break;
-case 'appetite':
-if ('appetiteScore' in d && d.appetiteScore !== '') items.push({ key: 'appetiteScore', value: Number(d.appetiteScore), mode: 'new' });
-if (text('appetite')) items.push({ key: 'appetite', value: text('appetite'), mode: 'new' });
-if (!items.length) throw new Error('Set a score or write something');
 break;
 case 'weight': { const n = num('weight', 30, 200, 'Enter your weight in kg'); if (n == null) throw new Error('Enter your weight'); items.push({ key: 'weight', value: n, mode: 'new' }); break; }
 case 'suppsSame': {
