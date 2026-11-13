@@ -1,13 +1,14 @@
 // Tap Logger service worker: keeps the app's own files on the phone so it opens instantly,
 // and quietly fetches fresh copies in the background for next time.
-const CACHE = 'tap-logger-v11';
+const CACHE = 'tap-logger-v12';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './maskable-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
+// Only clear Tap Logger's own old caches: Food Log lives on the same web address and keeps its own.
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('tap-logger-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
