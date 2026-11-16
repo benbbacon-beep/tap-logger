@@ -99,7 +99,7 @@ summary svg { width: 18px; height: 18px; transition: transform .2s; }
 details[open] summary svg { transform: rotate(180deg); }
 summary small { color: var(--muted); font-weight: 500; font-size: 13px; margin-left: auto; margin-right: 8px; }
 .in-details { display: flex; flex-direction: column; gap: 12px; }
-.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-items: end; }
 .grid3 input.in { text-align: center; font-size: 18px; font-weight: 600; padding: 0 4px; }
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: var(--card); border-radius: 10px; padding: 3px; }
 .seg button { height: 40px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; }
@@ -199,7 +199,7 @@ button { transition: transform .08s, background-color .15s; }
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue', LS_SHAPE = 'tl_shape', LS_D = 'tl_draft';
-const APP_VERSION = '12';
+const APP_VERSION = '13';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -223,7 +223,8 @@ cfg: null, offset: 0, data: null, loading: false, stale: false, seq: 0, err: nul
 tab: null, open: {}, busy: {}, d: {}  // d = drafts the user has typed but not saved
 };
 const TABS = ['Now', 'Morning', 'Day', 'Evening', 'More'];
-const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['omega', 'Omega-3']];
+const SUPPS = [['multivit', 'Multivitamin'], ['vitD', 'Vitamin D3+K2'], ['electro', 'Electrolytes'], ['electroPill', 'Electrolytes pill'], ['omega', 'Omega-3']];
+const LCARN = 2000; // acetyl L-carnitine, mg a day (from 17 Nov 2026; writes to the L-carnitine (mg) column)
 const SCORES = {
 am: [['amFog', 'Brain fog', '0 is none'], ['amIrr', 'Irritability / agitation', '0 is none'], ['amEnergy', 'Energy', '10 is best']],
 aft: [['aftFog', 'Brain fog', '0 is none'], ['aftIrr', 'Irritability / agitation', '0 is none'], ['aftEnergy', 'Energy', '10 is best']],
@@ -243,7 +244,7 @@ const ITEMS = [
 { id: 'ketones', tab: 'Morning', done: v => !!v.ketonesAM },
 { id: 'amMood', tab: 'Morning', done: v => moodDone(v, 'am') },
 { id: 'bowel', tab: 'Day', done: v => !!v.bowel },
-{ id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
+{ id: 'supps', tab: 'Day', done: v => ['multivit', 'vitD', 'omega', 'electro', 'electroPill', 'creatine', 'lcarn', 'mag'].some(k => !!v[k]) },
 { id: 'exercise', tab: 'Day', done: v => !!v.exercise },
 { id: 'aftMood', tab: 'Day', done: v => moodDone(v, 'aft') },
 { id: 'lastBite', tab: 'Evening', done: v => !!v.lastBite },
@@ -325,7 +326,7 @@ const sh = JSON.parse(localStorage.getItem(LS_SHAPE) || 'null');
 if (!sh || !sh.keys) return null;
 const values = {}, prev = {};
 sh.keys.forEach(k => { values[k] = ''; });
-try { const y = JSON.parse(localStorage.getItem(cacheKey(expectedLabel(S.offset - 1))) || 'null'); if (y) ['lcarn', 'mag', 'creatine', 'multivit', 'vitD', 'omega'].forEach(k => { prev[k] = y.values[k] || ''; }); } catch (e) {}
+try { const y = JSON.parse(localStorage.getItem(cacheKey(expectedLabel(S.offset - 1))) || 'null'); if (y) ['lcarn', 'mag', 'creatine', 'multivit', 'vitD', 'omega', 'electro', 'electroPill'].forEach(k => { prev[k] = y.values[k] || ''; }); } catch (e) {}
 return { label: expectedLabel(S.offset), values, prev, exOptions: sh.exOptions || [], blank: true };
 } catch (e) { return null; }
 }
@@ -706,28 +707,28 @@ function suppCard(v) {
 const isDone = ITEMS.find(i => i.id === 'supps').done(v);
 if (!isOpen('supps', isDone)) {
 const parts = SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([, n]) => n);
-if (v.lcarn) parts.push('L-carnitine ' + v.lcarn + 'mg');
+if (v.lcarn) parts.push('Acetyl L-carnitine ' + v.lcarn + 'mg');
 if (v.mag) parts.push('Magnesium ×' + v.mag);
 if (v.creatine) parts.push(numOnly(v.creatine) ? 'Creatine ' + v.creatine + 'g' : 'Creatine');
 return loggedRow('supps', 'Supplements', parts.join(', '));
 }
 const prev = (S.data && S.data.prev) || {};
 const yTicks = SUPPS.filter(([k]) => /^y/i.test(prev[k] || '')).map(([, n]) => n);
-const yAmts = [['lcarn', 'L-carnitine ', ' mg'], ['mag', 'Magnesium ×', ''], ['creatine', 'Creatine ', ' g']].filter(([k]) => numOnly(prev[k]) !== '').map(([k, a, b]) => a + numOnly(prev[k]) + b);
+const yAmts = [['lcarn', 'Acetyl L-carnitine ', ' mg'], ['mag', 'Magnesium ×', ''], ['creatine', 'Creatine ', ' g']].filter(([k]) => numOnly(prev[k]) !== '').map(([k, a, b]) => a + (k === 'lcarn' ? LCARN : numOnly(prev[k])) + b);
 if (!isDone && !S.open.suppEdit && (yTicks.length || yAmts.length)) {
 return '<div class="card"><div class="head"><h2>Supplements</h2><span class="lab12">Yesterday</span></div>' +
 '<div class="tags">' + yTicks.concat(yAmts).map(x => '<span>' + esc(x) + '</span>').join('') + '</div>' +
 '<div class="two"><button class="cta" data-save="suppsSame"' + (S.busy.suppsSame ? ' disabled' : '') + '>' + (S.busy.suppsSame ? 'Saving…' : 'Same as yesterday') + '</button><button class="cta alt" data-suppedit="1">Change</button></div></div>';
 }
 const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k));
-const lc = draft('lcarn', v.lcarn || numOnly(prev.lcarn)), mg = draft('mag', v.mag || numOnly(prev.mag)), cr = draft('creatine', v.creatine || numOnly(prev.creatine));
+const lc = draft('lcarn', v.lcarn || String(LCARN)), mg = draft('mag', v.mag || numOnly(prev.mag)), cr = draft('creatine', v.creatine || numOnly(prev.creatine));
 return '<div class="card" style="padding:4px 16px 16px"><details' + (S.open.suppsBody !== false ? ' open' : '') + ' id="supp-d" style="border:0;background:none;padding:0">' +
 '<summary><span>Supplements</span><small>' + sel.length + ' ticked</small>' + ICON.chev + '</summary><div class="in-details">' +
 '<div class="checks">' + SUPPS.map(([k, n]) => '<button data-supp="' + k + '" class="' + (sel.indexOf(k) >= 0 ? 'on' : '') + '" aria-pressed="' + (sel.indexOf(k) >= 0) + '"><span class="box">' + ICON.tick + '</span>' + n + '</button>').join('') + '</div>' +
-'<div class="grid3"><label class="f"><span class="lab12">L-carnitine mg</span><input class="in num" id="i_lcarn" data-d="lcarn" inputmode="numeric" value="' + esc(lc) + '"></label>' +
+'<div class="grid3"><label class="f"><span class="lab12">Acetyl L-carnitine (mg)</span><input class="in num" id="i_lcarn" data-d="lcarn" inputmode="numeric" value="' + esc(lc) + '"></label>' +
 '<label class="f"><span class="lab12">Magnesium caps</span><input class="in num" id="i_mag" data-d="mag" inputmode="numeric" value="' + esc(mg) + '"></label>' +
 '<label class="f"><span class="lab12">Creatine g</span><input class="in num" id="i_creatine" data-d="creatine" inputmode="decimal" value="' + esc(cr) + '"></label></div>' +
-'<div class="lab12">Amounts start at yesterday’s. Unticked ones stay blank.</div>' + saveBtn('supps', 'Save supplements') + '</div></details></div>';
+'<div class="lab12">Acetyl L-carnitine starts at 2000 mg, the others at yesterday’s. Unticked ones stay blank.</div>' + saveBtn('supps', 'Save supplements') + '</div></details></div>';
 }
 const restOption = () => ((S.data && S.data.exOptions) || []).find(o => /^rest$/i.test(String(o).trim()));
 function exerciseCard(v) {
@@ -815,7 +816,7 @@ case 'weight': { const n = num('weight', 30, 200, 'Enter your weight in kg'); if
 case 'suppsSame': {
 const prev = (S.data && S.data.prev) || {};
 SUPPS.filter(([k]) => /^y/i.test(prev[k] || '')).forEach(([k]) => items.push({ key: k, value: 'Yes', mode: 'new' }));
-['lcarn', 'mag', 'creatine'].forEach(k => { if (numOnly(prev[k]) !== '') items.push({ key: k, value: Number(numOnly(prev[k])), mode: 'new' }); });
+['lcarn', 'mag', 'creatine'].forEach(k => { if (numOnly(prev[k]) !== '') items.push({ key: k, value: k === 'lcarn' ? LCARN : Number(numOnly(prev[k])), mode: 'new' }); });
 if (!items.length) throw new Error('Nothing from yesterday to copy');
 break;
 }
@@ -833,7 +834,7 @@ case 'supps': {
 const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k));
 sel.forEach(k => items.push({ key: k, value: 'Yes', mode: 'new' }));
 const prev = (S.data && S.data.prev) || {};
-const lc = num('lcarn', 0, 100000, 'L-carnitine should be a number') ?? (d.lcarn === undefined && (v.lcarn || prev.lcarn) ? Number(v.lcarn || prev.lcarn) : null);
+const lc = num('lcarn', 0, 100000, 'Acetyl L-carnitine should be a number') ?? (d.lcarn === undefined ? Number(v.lcarn || LCARN) : null);
 const mg = num('mag', 0, 50, 'Magnesium should be a number') ?? (d.mag === undefined && (v.mag || prev.mag) ? Number(v.mag || prev.mag) : null);
 const cr = num('creatine', 0, 50, 'Creatine should be a number of grams') ?? (d.creatine === undefined && (numOnly(v.creatine) || numOnly(prev.creatine)) ? Number(numOnly(v.creatine) || numOnly(prev.creatine)) : null);
 if (lc != null && !isNaN(lc)) items.push({ key: 'lcarn', value: lc, mode: 'new' });
