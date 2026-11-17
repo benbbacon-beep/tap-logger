@@ -199,7 +199,7 @@ button { transition: transform .08s, background-color .15s; }
 'use strict';
 // ---------------------------------------------------------------- setup
 const LS_CFG = 'tl_cfg', LS_CACHE = 'tl_cache', LS_Q = 'tl_queue', LS_SHAPE = 'tl_shape', LS_D = 'tl_draft';
-const APP_VERSION = '13';
+const APP_VERSION = '14';
 const ICON = {
 left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
 right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
@@ -692,7 +692,7 @@ return '<div class="srow"><div class="lbl"><span>' + label + ', ' + hint + '</sp
 }
 function bowelCard(v) {
 if (!isOpen('bowel', !!v.bowel)) return loggedRow('bowel', 'Bowel movements', v.bowel);
-return '<div class="card"><h2>Bowel movements</h2>' + (v.bowel ? '<div class="saved">Saved: ' + esc(v.bowel) + '</div>' : '') + textArea('bowel', 'What happened', '') + saveBtn('bowel', 'Save') + '</div>';
+return '<div class="card"><h2>Bowel movements</h2>' + (v.bowel && !S.open.bowel ? '<div class="saved">Saved: ' + esc(v.bowel) + '</div>' : '') + textArea('bowel', 'What happened', '') + saveBtn('bowel', 'Save') + '</div>';
 }
 function timeCard(key, title, v) {
 const isDone = !!v[key];
@@ -728,29 +728,29 @@ return '<div class="card" style="padding:4px 16px 16px"><details' + (S.open.supp
 '<div class="grid3"><label class="f"><span class="lab12">Acetyl L-carnitine (mg)</span><input class="in num" id="i_lcarn" data-d="lcarn" inputmode="numeric" value="' + esc(lc) + '"></label>' +
 '<label class="f"><span class="lab12">Magnesium caps</span><input class="in num" id="i_mag" data-d="mag" inputmode="numeric" value="' + esc(mg) + '"></label>' +
 '<label class="f"><span class="lab12">Creatine g</span><input class="in num" id="i_creatine" data-d="creatine" inputmode="decimal" value="' + esc(cr) + '"></label></div>' +
-'<div class="lab12">Acetyl L-carnitine starts at 2000 mg, the others at yesterday’s. Unticked ones stay blank.</div>' + saveBtn('supps', 'Save supplements') + '</div></details></div>';
+'<div class="lab12">' + (isDone ? 'Untick or empty a box to remove it from today.' : 'Acetyl L-carnitine starts at 2000 mg, the others at yesterday’s. Unticked ones stay blank.') + '</div>' + saveBtn('supps', 'Save supplements') + '</div></details></div>';
 }
 const restOption = () => ((S.data && S.data.exOptions) || []).find(o => /^rest$/i.test(String(o).trim()));
 function exerciseCard(v) {
 const gymBits = GYM.filter(([k]) => filled(v[k])).map(([k, l]) => l.toLowerCase() + ' ' + v[k]).concat(v.gymDur ? ['duration ' + v.gymDur] : [], v.gymInt ? ['intensity ' + v.gymInt] : []);
 if (!isOpen('exercise', !!v.exercise)) return loggedRow('exercise', 'Exercise', v.exercise + (gymBits.length ? ' · ' + gymBits.join(' · ') : '') + (v.exNotes ? ' · notes saved' : ''));
-const opts = (S.data && S.data.exOptions) || [];
+const opts = exOpts(v), editing = !!S.open.exercise;
 const sel = draft('exSel', []);
 const seg = (key, labels) => '<div class="seg" data-segkey="' + key + '">' + labels.map(l => '<button data-segv="' + l + '" class="' + (draft(key, '') === l ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
-const pick = (title, sheetKey, segKey, labels, noteKey, ph) => '<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">' + title + (v[sheetKey] ? ' · saved: ' + esc(v[sheetKey]) : '') + '</span>' + seg(segKey, labels) +
+const pick = (title, sheetKey, segKey, labels, noteKey, ph) => '<div class="f" style="display:flex;flex-direction:column;gap:6px"><span class="lab12">' + title + (v[sheetKey] && !editing ? ' · saved: ' + esc(v[sheetKey]) : '') + '</span>' + seg(segKey, labels) +
 '<input class="in" id="i_' + noteKey + '" data-d="' + noteKey + '" aria-label="' + title + ' note" placeholder="' + ph + '" value="' + esc(draft(noteKey, '')) + '"></div>';
 const gymOn = sel.some(o => /gym/i.test(o)) || gymBits.length > 0;
 const open = S.open.gym === undefined ? gymOn : S.open.gym;
 const shown = GYM.map(([k]) => (k in S.d ? S.d[k] : v[k])).filter(filled);
 return '<div class="card"><h2>Exercise</h2>' +
-(v.exercise ? '<div class="saved">Saved: ' + esc(v.exercise) + '</div>' : '') +
+(v.exercise && !editing ? '<div class="saved">Saved: ' + esc(v.exercise) + '</div>' : '') +
 '<div class="chips">' + opts.map(o => '<button data-chip="' + esc(o) + '" class="' + (sel.indexOf(o) >= 0 ? 'on' : '') + '" aria-pressed="' + (sel.indexOf(o) >= 0) + '">' + esc(o) + '</button>').join('') + '</div>' +
 '<details id="gym-d"' + (open ? ' open' : '') + '><summary><span>Gym scores' + (shown.length ? ' · ' + shown.join(' / ') : '') + '</span>' + ICON.chev + '</summary><div class="in-details">' +
 GYM.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
 pick('Duration', 'gymDur', 'g_dur', ['Too short', 'Good', 'Too long'], 'g_durNote', 'Duration note, e.g. 1h50') +
 pick('Intensity', 'gymInt', 'g_int', ['Too easy', 'Good', 'Too hard'], 'g_intNote', 'Intensity note (optional)') +
 '</div></details>' +
-(v.exNotes ? '<div class="saved">Notes saved: ' + esc(v.exNotes) + '</div>' : '') +
+(v.exNotes && !editing ? '<div class="saved">Notes saved: ' + esc(v.exNotes) + '</div>' : '') +
 textArea('exNotes', 'Exercise notes', 'How today’s exercise went', 96) +
 (!v.exercise && restOption() ? '<div class="two"><button class="cta" data-save="exercise">Save exercise</button><button class="cta alt" data-rest="1">Rest day</button></div>' : saveBtn('exercise', 'Save exercise')) + '</div>';
 }
@@ -767,7 +767,7 @@ return '<div class="slbl"><span>' + l + '</span><b data-for="' + k + '" class="'
 return '<div class="card"><h2>Daily mood</h2><div class="note" style="padding:0">The whole day, end of day.</div>' +
 DAILY.map(([k, l, hint]) => scoreRow(k, l, hint, v[k])).join('') +
 '<div class="sub">Mood, −5 to +5</div>' + DAILY_MOOD.map(moodSlider).join('') +
-(v.moodNotes ? '<div class="saved">Saved: ' + esc(v.moodNotes) + '</div>' : '') +
+(v.moodNotes && !S.open.dailyMood ? '<div class="saved">Saved: ' + esc(v.moodNotes) + '</div>' : '') +
 textArea('moodNotes', 'Overall mood notes', 'How the day went overall', 96) + saveBtn('dailyMood', 'Save daily mood') + '</div>';
 }
 function moreCard(key, title, label, ph, mode, v) {
@@ -785,6 +785,54 @@ if (isNaN(n) || n < lo || n > hi) throw new Error(label);
 return n;
 };
 const text = k => String(d[k] || '').trim();
+// Editing something already logged: the card starts from what's saved (seedEdit), and only what you changed is sent.
+// A changed value replaces the saved one (expect = what you were shown, so the sheet still asks if it changed elsewhere);
+// a field you emptied is cleared.
+if (S.open[id] && ITEMS.some(i => i.id === id && i.done(v))) {
+const E = (key, val) => {
+if (val == null) return;
+const cur = filled(v[key]) ? String(v[key]).trim() : '', nv = String(val).trim();
+if (eqv(cur, nv)) return;
+if (nv === '') { if (cur) items.push({ key, mode: 'clear', expect: cur }); return; }
+items.push(Object.assign({ key, value: typeof val === 'number' ? val : nv, mode: 'new' }, cur ? { expect: cur } : {}));
+};
+const has = k => k in d;
+const numOrBlank = (k, lo, hi, label) => (has(k) ? (String(d[k]).trim() === '' ? '' : num(k, lo, hi, label)) : null);
+switch (id) {
+case 'sleep': if (has('sleepQ')) E('sleepQ', Number(d.sleepQ)); E('sleepNotes', has('sleepNotes') ? text('sleepNotes') : null); break;
+case 'weight': E('weight', numOrBlank('weight', 30, 200, 'Enter your weight in kg')); break;
+case 'ketones': E('ketonesAM', numOrBlank('ketonesAM', 0, 10, 'Ketones should be 0 to 10')); break;
+case 'bowel': E('bowel', has('bowel') ? text('bowel') : null); break;
+case 'lastBite': { const t = draft(id, v.lastBite || ''); if (t && !/^\d{2}:\d{2}$/.test(t)) throw new Error('Pick a time'); E('lastBite', t); break; }
+case 'supps': {
+const sel = draft('supSel', SUPPS.filter(([k]) => /^y/i.test(v[k] || '')).map(([k]) => k));
+SUPPS.forEach(([k]) => E(k, sel.indexOf(k) >= 0 ? 'Yes' : ''));
+E('lcarn', numOrBlank('lcarn', 0, 100000, 'Acetyl L-carnitine should be a number'));
+E('mag', numOrBlank('mag', 0, 50, 'Magnesium should be a number'));
+E('creatine', numOrBlank('creatine', 0, 50, 'Creatine should be a number of grams'));
+break;
+}
+case 'exercise': {
+const opts = exOpts(v), sel = draft('exSel', []);
+if (has('exSel')) E('exercise', opts.filter(o => sel.indexOf(o) >= 0).join(', '));
+GYM.forEach(([k]) => { if (has(k) && d[k] !== '') E(k, Number(d[k])); });
+[['gymDur', 'g_dur', 'g_durNote'], ['gymInt', 'g_int', 'g_intNote']].forEach(([k, pk, nk]) => { if (has(pk) || has(nk)) E(k, [d[pk], text(nk)].filter(Boolean).join(', ')); });
+E('exNotes', has('exNotes') ? text('exNotes') : null);
+break;
+}
+case 'dailyMood': {
+DAILY.concat(DAILY_MOOD).forEach(([k]) => { if (has(k) && d[k] !== '') E(k, Number(d[k])); });
+const val = k => (has(k) && d[k] !== '' ? Number(d[k]) : (filled(v[k]) ? Number(v[k]) : null));
+const lo = val('dLow'), hi = val('dHigh');
+if (lo != null && hi != null && lo > hi) throw new Error('Lowest mood can’t be above highest');
+E('moodNotes', has('moodNotes') ? text('moodNotes') : null);
+break;
+}
+case 'amMood': case 'aftMood': case 'eveMood': { const p = id.replace('Mood', ''); [id].concat(SCORES[p].map(([k]) => k)).forEach(k => { if (has(k) && d[k] !== '') E(k, Number(d[k])); }); break; }
+}
+if (!items.length) { const e = new Error('Nothing changed'); e.soft = true; throw e; }
+return items;
+}
 switch (id) {
 case 'sleep':
 if ('sleepQ' in d) items.push({ key: 'sleepQ', value: Number(d.sleepQ), mode: 'new' });
@@ -844,7 +892,7 @@ if (!items.length) throw new Error('Tick something or enter an amount');
 break;
 }
 case 'exercise': {
-const opts = (S.data && S.data.exOptions) || [];
+const opts = exOpts(v);
 const sel = draft('exSel', []);
 if (sel.length) items.push({ key: 'exercise', value: opts.filter(o => sel.indexOf(o) >= 0).join(', '), mode: 'new', sep: ', ' });
 GYM.forEach(([k]) => { if (k in d && d[k] !== '') items.push({ key: k, value: Number(d[k]), mode: 'new' }); });
@@ -881,6 +929,26 @@ if (S.sending !== id && getQ().some(j => j.id === id)) setQ(getQ().filter(j => j
 else if (undo.length) submit(cardId + 'Undo', undo, label, true);
 if (S.data && S.data.label === label) items.forEach(it => { S.d[it.key] = String(it.value); });
 render(); toast('Undone', true);
+}
+// ---------------------------------------------------------------- editing a logged item starts from what's saved
+const exOpts = v => { const o = ((S.data && S.data.exOptions) || []).slice(); String(v.exercise || '').split(',').map(x => x.trim()).filter(Boolean).forEach(x => { if (o.indexOf(x) < 0) o.push(x); }); return o; };
+function seedEdit(id, v) {
+const d = S.d, set = (k, val) => { if (!(k in d)) d[k] = val == null ? '' : String(val); };
+const splitPick = (val, labels, pk, nk) => { const t = String(val || '').trim(); const l = labels.find(x => t === x || t.indexOf(x + ',') === 0); set(pk, l || ''); set(nk, l ? t.slice(l.length).replace(/^,\s*/, '') : t); };
+switch (id) {
+case 'sleep': set('sleepNotes', v.sleepNotes); break;
+case 'weight': set('weight', v.weight); break;
+case 'ketones': set('ketonesAM', v.ketonesAM); break;
+case 'bowel': set('bowel', v.bowel); break;
+case 'lastBite': set('lastBite', v.lastBite); break;
+case 'dailyMood': set('moodNotes', v.moodNotes); break;
+case 'exercise':
+if (!('exSel' in d)) d.exSel = String(v.exercise || '').split(',').map(x => x.trim()).filter(Boolean);
+splitPick(v.gymDur, ['Too short', 'Good', 'Too long'], 'g_dur', 'g_durNote');
+splitPick(v.gymInt, ['Too easy', 'Good', 'Too hard'], 'g_int', 'g_intNote');
+set('exNotes', v.exNotes);
+break;
+}
 }
 // ---------------------------------------------------------------- events
 function bind() {
@@ -937,7 +1005,7 @@ if (ds.rest) { const r = restOption(); if (!r) return; S.d.exSel = [r]; let its;
 if (ds.update) { (window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : Promise.resolve()).then(() => location.reload()); return; }
 if (ds.tab) { S.tab = ds.tab; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
 if (ds.fold) { const k = ds.fold, open = !S.open[k]; S.open[k] = open; if (!open) Object.keys(S.open).forEach(x => { if (x !== k && ITEMS.some(i => i.id === x)) S.open[x] = false; }); render(); return; }
-if (ds.edit) { S.open[ds.edit] = true; render(); return; }
+if (ds.edit) { seedEdit(ds.edit, V()); S.open[ds.edit] = true; render(); return; }
 if (ds.close) { S.open[ds.close] = false; (CLEAR[ds.close] || [ds.close]).forEach(k => delete S.d[k]); render(); return; }
 if (ds.nudge) {
 const k = ds.nudge, min = +ds.min, max = +ds.max;
@@ -964,7 +1032,10 @@ S.d.supSel = sel; render(); return;
 }
 if (ds.save) {
 let items;
-try { items = collect(ds.save); } catch (err) { toast(err.message, false); return; }
+try { items = collect(ds.save); } catch (err) {
+if (err.soft) { S.open[ds.save] = false; (CLEAR[ds.save] || [ds.save]).forEach(k => delete S.d[k]); render(); toast(err.message, true); return; }
+toast(err.message, false); return;
+}
 if (AUTO[ds.save]) { clearTimeout(AUTO[ds.save]); delete AUTO[ds.save]; }
 submit(ds.save, items);
 }
